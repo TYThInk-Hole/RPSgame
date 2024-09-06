@@ -163,7 +163,7 @@ Lsize = 200
 reproduction_rate = 1.0
 selection_rate = 1.0
 mobility = 30
-para = 2.0
+para = 3.0
 
 for rn = 1:1000
     RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
