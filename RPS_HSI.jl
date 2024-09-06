@@ -1,4 +1,5 @@
-using Random, HDF5, Printf
+using Random, HDF5, Printf, Statistics
+using Plots
 
 function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     start_time = time()
@@ -21,6 +22,11 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     file_dir = "/Volumes/yoonJL/RPS_inter_test.h5"
     dataset1 = "/HSI/$(rn)"
     dataset2 = "/NumS/$(rn)"
+    
+    h5open(file_dir, "cw") do f
+        create_dataset(f, dataset1, Float64, ((1,3), (-1, 3)); chunk=(1,3))
+        create_dataset(f, dataset2, Float64, ((1,3), (-1, 3)); chunk=(1,3))
+    end
 
     generation = 0
     Flag = true
@@ -36,7 +42,7 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
         rr = rand(1:4, Lsize^2)
 
         # Compute the neighbor indices with boundary condition handling
-        Cpre = mod1.(R .+ neighbor_shifts[rr, :] .- 1, Lsize)
+        Cpre = mod1.(R .+ neighbor_shifts[rr, :], Lsize)
         C = sub2ind(Lsize, Cpre[:, 1], Cpre[:, 2])
         R_idx = sub2ind(Lsize, R[:, 1], R[:, 2])
 
@@ -89,20 +95,28 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
         nExt = sum([nA, nB, nC] .== 0)
 
         # Compute HSI
-        A_rows, A_cols = findall(x -> x == 1, Lattice) |> collect
-        B_rows, B_cols = findall(x -> x == 2, Lattice) |> collect
-        C_rows, C_cols = findall(x -> x == 3, Lattice) |> collect
+        A_indices = findall(x -> x == 1, Lattice)
+        B_indices = findall(x -> x == 2, Lattice)
+        C_indices = findall(x -> x == 3, Lattice)
 
-        HSI_A = compute_HSI(Lattice, A_rows, A_cols, neighbor_shifts, Lsize, [2, 3])
-        HSI_B = compute_HSI(Lattice, B_rows, B_cols, neighbor_shifts, Lsize, [1, 3])
-        HSI_C = compute_HSI(Lattice, C_rows, C_cols, neighbor_shifts, Lsize, [1, 2])
+        HSI_A = compute_HSI(Lattice, A_indices, A_indices, neighbor_shifts, Lsize, 2, 3)
+        HSI_B = compute_HSI(Lattice, B_indices, B_indices, neighbor_shifts, Lsize, 3, 1)
+        HSI_C = compute_HSI(Lattice, C_indices, C_indices, neighbor_shifts, Lsize, 1, 2)
 
         # Write data to HDF5 file
         h5open(file_dir, "r+") do f
             dset1 = f[dataset1]
             dset2 = f[dataset2]
-            dset1[:, :, generation] = [HSI_A, HSI_B, HSI_C]
-            dset2[generation, :] = [nA, nB, nC]
+            curr_size = size(dset1, 1)
+            new_size = curr_size + 1
+            
+            # 데이터셋 크기 확장
+            HDF5.set_extent_dims(dset1, (new_size, 3))
+            HDF5.set_extent_dims(dset2, (new_size, 3))
+            
+            # 데이터 쓰기
+            dset1[new_size, :] = [HSI_A, HSI_B, HSI_C]
+            dset2[new_size, :] = [nA, nB, nC]
         end
 
         @printf("rn=%d, species=%d, %d, %d, nExt=%d, generation=%d\n", rn, nA, nB, nC, nExt, generation)
@@ -112,6 +126,7 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
             Flag = false
         end
     end
+    
     println("Elapsed time: ", time() - start_time, " seconds")
 end
 
@@ -121,7 +136,7 @@ function sub2ind(Lsize, row, col)
 end
 
 # Helper function to compute HSI
-function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species)
+function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species, predator_species)
     num_cells = length(rows)
 
     if num_cells == 0
@@ -130,16 +145,17 @@ function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species)
 
     neighbors = zeros(Int, num_cells, size(neighbor_shifts, 1))
 
-    for k in 1:size(neighbor_shifts, 1)
-        neighbor_rows = mod1.(rows .+ neighbor_shifts[k, 1] .- 1, Lsize)
-        neighbor_cols = mod1.(cols .+ neighbor_shifts[k, 2] .- 1, Lsize)
-        neighbors[:, k] = Lattice[neighbor_rows .+ (neighbor_cols .- 1) .* Lsize]
+    for k in axes(neighbor_shifts, 1)
+        neighbor_rows = mod1.(getindex.(rows, 1) .+ neighbor_shifts[k, 1], Lsize)
+        neighbor_cols = mod1.(getindex.(cols, 2) .+ neighbor_shifts[k, 2], Lsize)
+        neighbors[:, k] = Lattice[CartesianIndex.(neighbor_rows, neighbor_cols)]
     end
 
-    prey_count = sum(ismember.(neighbors, prey_species), dims=2)
+    prey_count = sum(neighbors .== prey_species, dims=2)
+    predator_count = sum(neighbors .== predator_species, dims=2)
     empty_count = sum(neighbors .== 0, dims=2)
 
-    return mean((prey_count .+ empty_count) / 4)
+    return mean((prey_count .+ empty_count .- predator_count) ./ 4)
 end
 
 # Example usage:
@@ -147,7 +163,19 @@ Lsize = 200
 reproduction_rate = 1.0
 selection_rate = 1.0
 mobility = 30
-para = 3.0
-for rn in 1:1
+para = 6.25
+
+for rn = 1:1000
     RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
-end
+end 
+
+# rn=1
+# h5open("/Volumes/yoonJL/RPS_inter_test.h5", "r") do file
+#     hsi_data = read(file["/HSI/$(rn)"])
+#     nums_data = read(file["/NumS/$(rn)"])
+    
+#     println("HSI 데이터:")
+#     println(hsi_data)
+#     println("\n종 수 데이터:")
+#     println(nums_data)
+# end
