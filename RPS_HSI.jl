@@ -159,15 +159,41 @@ function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species, 
 end
 
 # Example usage:
-Lsize = 200
-reproduction_rate = 1.0
-selection_rate = 1.0
-mobility = 30
-para = 3.0
+function get_parameters()
+    println("Enter parameters in the following order:")
+    println("Lsize, reproduction_rate, selection_rate, mobility, para, rn_start, rn_end")
+    println("Example: 200 1.0 1.0 30 3.0 1 1000")
+    
+    while true
+        try
+            input = readline()
+            params = parse.(Float64, split(input))
+            if length(params) != 7
+                throw(ArgumentError("Incorrect number of parameters"))
+            end
+            return (
+                Int(params[1]),  # Lsize
+                params[2],       # reproduction_rate
+                params[3],       # selection_rate
+                Int(params[4]),  # mobility
+                params[5],       # para
+                Int(params[6]),  # rn_start
+                Int(params[7])   # rn_end
+            )
+        catch e
+            println("Invalid input. Please try again.")
+            println("Error: ", e)
+        end
+    end
+end
 
-for rn = 1:1000
+# Get parameters
+Lsize, reproduction_rate, selection_rate, mobility, para, rn_start, rn_end = get_parameters()
+
+# Main loop
+for rn in rn_start:rn_end
     RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
-end 
+end
 
 # rn=1
 # h5open("/Volumes/yoonJL/RPS_inter_test.h5", "r") do file
