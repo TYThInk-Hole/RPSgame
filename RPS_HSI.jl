@@ -19,7 +19,7 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # Setup HDF5 file
-    file_dir = "/Volumes/yoonJL/RPS_inter_test.h5"
+    file_dir = "/Volumes/yoonD/RPS/RPS_inter_test.h5"
     dataset1 = "/HSI/$(rn)"
     dataset2 = "/NumS/$(rn)"
     
