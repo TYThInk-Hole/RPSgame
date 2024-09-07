@@ -1,4 +1,4 @@
-using Random, HDF5, Printf,Plots
+using Random, HDF5, Printf, Plots, Statistics
 
 function RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     start_time = time()
@@ -18,7 +18,7 @@ function RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # Setup HDF5 file and create datasets for Lattice and NumS
-    file_dir = "/Volumes/yoonD/RPSLS_inter.h5"
+    file_dir = "/Volumes/yoonD/RPS/RPSLS_inter_test.h5"
     dataset1 = "/HSI/$(rn)"
     dataset2 = "/NumS/$(rn)"
 
@@ -109,11 +109,11 @@ function RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
          D_indices = findall(x -> x == 4, Lattice)
          E_indices = findall(x -> x == 5, Lattice)
 
-         HSI_A = compute_HSI(Lattice, A_indices, A_indices, neighbor_shifts, Lsize, [2,4], [5,3])
-         HSI_B = compute_HSI(Lattice, B_indices, B_indices, neighbor_shifts, Lsize, [3,5], [1,4])
-         HSI_C = compute_HSI(Lattice, C_indices, C_indices, neighbor_shifts, Lsize, [4,1], [2,5])
-         HSI_D = compute_HSI(Lattice, D_indices, D_indices, neighbor_shifts, Lsize, [2,5], [3,1])
-         HSI_E = compute_HSI(Lattice, E_indices, E_indices, neighbor_shifts, Lsize, [1,3], [4,2])
+         HSI_A = compute_HSI(Lattice, A_indices, neighbor_shifts, Lsize, [2,4], [5,3])
+         HSI_B = compute_HSI(Lattice, B_indices, neighbor_shifts, Lsize, [3,5], [1,4])
+         HSI_C = compute_HSI(Lattice, C_indices, neighbor_shifts, Lsize, [4,1], [2,5])
+         HSI_D = compute_HSI(Lattice, D_indices, neighbor_shifts, Lsize, [2,5], [3,1])
+         HSI_E = compute_HSI(Lattice, E_indices, neighbor_shifts, Lsize, [1,3], [4,2])
 
         # Write data to HDF5 file
         h5open(file_dir, "r+") do f
@@ -123,8 +123,8 @@ function RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
             new_size = curr_size + 1
 
             # Resize dataset before appending new data
-            HDF5.set_extent!(dset1, (new_size, 5))
-            HDF5.set_extent!(dset2, (new_size, 5))
+            HDF5.set_extent_dims(dset1, (new_size, 5))
+            HDF5.set_extent_dims(dset2, (new_size, 5))
 
             # Write the new generation's data
             dset1[new_size, :] = [HSI_A, HSI_B, HSI_C, HSI_D, HSI_E]
@@ -146,8 +146,8 @@ function sub2ind(Lsize, row, col)
     return (col .- 1) .* Lsize .+ row
 end
 
-function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species, predator_species)
-    num_cells = length(rows)
+function compute_HSI(Lattice, indices, neighbor_shifts, Lsize, prey_species, predator_species)
+    num_cells = length(indices)
 
     if num_cells == 0
         return 0.0
@@ -156,13 +156,13 @@ function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species, 
     neighbors = zeros(Int, num_cells, size(neighbor_shifts, 1))
 
     for k in axes(neighbor_shifts, 1)
-        neighbor_rows = mod1.(getindex.(rows, 1) .+ neighbor_shifts[k, 1], Lsize)
-        neighbor_cols = mod1.(getindex.(cols, 2) .+ neighbor_shifts[k, 2], Lsize)
+        neighbor_rows = mod1.(getindex.(indices, 1) .+ neighbor_shifts[k, 1], Lsize)
+        neighbor_cols = mod1.(getindex.(indices, 2) .+ neighbor_shifts[k, 2], Lsize)
         neighbors[:, k] = Lattice[CartesianIndex.(neighbor_rows, neighbor_cols)]
     end
 
-    prey_count = sum(neighbors .== prey_species, dims=2)
-    predator_count = sum(neighbors .== predator_species, dims=2)
+    prey_count = sum(in.(neighbors, Ref(Set(prey_species))), dims=2)
+    predator_count = sum(in.(neighbors, Ref(Set(predator_species))), dims=2)
     empty_count = sum(neighbors .== 0, dims=2)
 
     return mean((prey_count .+ empty_count .- predator_count) ./ 4)
