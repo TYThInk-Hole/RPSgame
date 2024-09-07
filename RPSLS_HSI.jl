@@ -1,6 +1,6 @@
 using Random, HDF5, Printf,Plots
 
-function RPSLS_inter_individualt(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
+function RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     start_time = time()
     Random.seed!(rn)
 
@@ -202,5 +202,5 @@ Lsize, reproduction_rate, selection_rate, mobility, para, rn_start, rn_end = get
 
 # Main loop
 for rn in rn_start:rn_end
-    RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
+    RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
 end
