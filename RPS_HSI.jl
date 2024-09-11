@@ -205,3 +205,7 @@ end
 #     println("\n종 수 데이터:")
 #     println(nums_data)
 # end
+
+ums_data)
+# end
+

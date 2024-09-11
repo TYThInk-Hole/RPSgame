@@ -11,7 +11,7 @@ function ERPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     M = para * 10^(-mobility * 0.1)
     eps = M * (Lsize^2) / 2
     r1 = reproduction_rate / (reproduction_rate + selection_rate + eps)
-    r2 = selection_rate / (reproduction_rate + eps)
+    r2 = selection_rate / (reproduction_rate + selection_rate + eps)
     r3 = eps / (reproduction_rate + selection_rate + eps)
 
     # Define neighbor offsets
