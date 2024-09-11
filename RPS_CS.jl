@@ -1,4 +1,4 @@
-using Random, HDF5, Printf, Statistics, SparseArrays, StatsBase
+using Random, HDF5, Printf, Statistics, SparseArrays, StatsBase, Base.Threads
 
 function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
     start_time = time()
@@ -27,7 +27,7 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 file setup
-    file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra_$rn.h5"
+    file_dir = "/Volumes/yoondata/RPS/intra/RPS_intra_$rn.h5"
     dataset1 = "$intra1/Histogram/$rn"
     dataset2 = "$intra1/NumS/$rn"
     # dataset3 = "$intra1/Trace/$rn"
@@ -201,7 +201,7 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         @printf("rn=%d, species=%d, %d, %d, nExt=%d, generation=%d\n", rn, nA, nB, nC, nExt, generation)
 
         # Stop if extinction or generation limit reached
-        if nExt == ext || generation == 1000
+        if nExt == ext 
             Flag = false
         end
     end
@@ -262,6 +262,10 @@ end
 Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end = get_parameters()
 
 # Main loop for simulations
-for rn in rn_start:rn_end
+# for rn in rn_start:rn_end
+#     RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
+# end
+# Main loop parallelized using Threads.@threads
+Threads.@threads for rn in rn_start:rn_end
     RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
 end
