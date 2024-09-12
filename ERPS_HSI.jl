@@ -1,4 +1,4 @@
-using Random, HDF5, Printf, Plots, Statistics
+using Random, HDF5, Printf, Plots, Statistics, Base.Threads
 
 function ERPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     start_time = time()
@@ -18,7 +18,7 @@ function ERPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # Setup HDF5 file and create datasets for Lattice and NumS
-    file_dir = "/Volumes/yoonD/RPS/ERPS_inter_test.h5"
+    file_dir = "/home/ndmacn1/Desktop/yoonD/ERPS_inter_$rn.h5"
     dataset1 = "/HSI/$rn"
     dataset2 = "/NumS/$rn"
 
@@ -196,6 +196,6 @@ end
 Lsize, reproduction_rate, selection_rate, mobility, para, rn_start, rn_end = get_parameters()
 
 # Main loop
-for rn in rn_start:rn_end
+Threads.@threads for rn in rn_start:rn_end
     ERPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
 end

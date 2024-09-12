@@ -160,6 +160,8 @@ function ERPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, 
         spe_a = nonzeros(SA)
         spe_b = nonzeros(SB)
         spe_c = nonzeros(SC)
+        spe_d = nonzeros(SD)
+        spe_e = nonzeros(SE)
 
         bin_max = maximum([isempty(spe_a) ? 0 : maximum(spe_a),
                            isempty(spe_b) ? 0 : maximum(spe_b),
@@ -239,14 +241,14 @@ end
 # Example usage:
 function get_parameters()
     println("Enter parameters in the following order:")
-    println("Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end")
-    println("Example: 200 1.0 1.0 30 2.5 1.0 0.5 1 1.0 1 1000")
+    println("Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn_start, rn_end")
+    println("Example: 200 1.0 1.0 30 2.5 1.0 0.5 1 1.0 1.0 1 1000")
     
     while true
         try
             input = readline()
             params = parse.(Float64, split(input))
-            if length(params) != 11
+            if length(params) != 13
                 throw(ArgumentError("Incorrect number of parameters"))
             end
             return (
@@ -257,10 +259,12 @@ function get_parameters()
                 params[5],       # intra1
                 params[6],       # intra2
                 params[7],       # intra3
-                Int(params[8]),  # ext
-                params[9],       # para
-                Int(params[10]), # rn_start
-                Int(params[11])  # rn_end
+                params[8],       # intra4
+                params[9],       # intra5
+                Int(params[10]), # ext
+                params[11],       # para
+                Int(params[12]), # rn_start
+                Int(params[13])  # rn_end
             )
         catch e
             println("Invalid input. Please try again.")
