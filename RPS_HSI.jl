@@ -1,4 +1,4 @@
-using Random, HDF5, Printf, Statistics
+using Random, HDF5, Printf, Statistics, Base.Threads
 using Plots
 
 function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
@@ -24,8 +24,12 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     dataset2 = "/NumS/$(rn)"
     
     h5open(file_dir, "cw") do f
-        create_dataset(f, dataset1, Float64, ((1,3), (-1, 3)); chunk=(1,3))
-        create_dataset(f, dataset2, Float64, ((1,3), (-1, 3)); chunk=(1,3))
+        if !haskey(f, dataset1)
+            create_dataset(f, dataset1, Float64, ((1,3), (-1, 3)); chunk=(1,3))
+        end
+        if !haskey(f, dataset2)
+            create_dataset(f, dataset2, Float64, ((1,3), (-1, 3)); chunk=(1,3))
+        end
     end
 
     generation = 0
@@ -190,8 +194,8 @@ end
 # Get parameters
 Lsize, reproduction_rate, selection_rate, mobility, para, rn_start, rn_end = get_parameters()
 
-# Main loop
-for rn in rn_start:rn_end
+#Main loop
+Threads.@threads for rn in rn_start:rn_end
     RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
 end
 

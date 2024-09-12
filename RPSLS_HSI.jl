@@ -1,4 +1,4 @@
-using Random, HDF5, Printf, Plots, Statistics
+using Random, HDF5, Printf, Plots, Statistics, Base.Threads
 
 function RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     start_time = time()
@@ -24,8 +24,12 @@ function RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
 
     # Create the datasets with -1 for extendable dimension
     h5open(file_dir, "cw") do f
-        create_dataset(f, dataset1, Float64, ((1,5), (-1, 5)); chunk=(1,5))
-        create_dataset(f, dataset2, Float64, ((1,5), (-1, 5)); chunk=(1,5))
+        if !haskey(f, dataset1)
+            create_dataset(f, dataset1, Float64, ((1,5), (-1, 5)); chunk=(1,5))
+        end
+        if !haskey(f, dataset2)
+            create_dataset(f, dataset2, Float64, ((1,5), (-1, 5)); chunk=(1,5))
+        end
     end
 
     generation = 0
@@ -201,6 +205,6 @@ end
 Lsize, reproduction_rate, selection_rate, mobility, para, rn_start, rn_end = get_parameters()
 
 # Main loop
-for rn in rn_start:rn_end
+Threads.@threads for rn in rn_start:rn_end
     RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
 end
