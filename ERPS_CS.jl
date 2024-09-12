@@ -1,11 +1,11 @@
 using Random, HDF5, Printf, Statistics, SparseArrays, StatsBase, Base.Threads
 
-function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
+function ERPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn)
     start_time = time()
     Random.seed!(rn)
 
     # Initialize random lattice (values 0 to 3)
-    Lattice = rand(0:3, Lsize, Lsize)
+    Lattice = rand(0:5, Lsize, Lsize)
 
     # Track individual age (using sparse matrices)
     Trace = spzeros(Float64, Lsize, Lsize) .+ (Lattice .> 0)
@@ -15,20 +15,21 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     eps = M * (Lsize^2) * 1/2
 
     # Compute rates
-    rate_sum = reproduction_rate + selection_rate + intra1 + intra2 + intra3 + eps
+    rate_sum = reproduction_rate + selection_rate + intra1 + intra2 + intra3 + intra4 + intra5 + eps
     r1 = reproduction_rate / rate_sum
     r2 = selection_rate / rate_sum
     r3 = intra1 / rate_sum
     r4 = intra2 / rate_sum
     r5 = intra3 / rate_sum
-    r6 = eps / rate_sum
+    r6 = intra4 / rate_sum
+    r7 = intra5 / rate_sum
+    r8 = eps / rate_sum
 
     # Neighbor shifts (4 directions)
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 file setup
-    # file_dir = "/Volumes/yoondata/RPS/intra/RPS_intra_$rn.h5"
-    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_$rn.h5"
+    file_dir = "/Volumes/yoonD/RPS/intra/ERPS_intra_$rn.h5"
     dataset1 = "$intra1/Histogram/$rn"
     dataset2 = "$intra1/NumS/$rn"
     # dataset3 = "$intra1/Trace/$rn"
@@ -39,19 +40,14 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         if haskey(f, dataset1)
             delete_object(f, dataset1)
         end
-        create_dataset(f, dataset1, Float64, ((1, 50, 4), (-1, 50, 4)); chunk=(1, 50, 4))
+        create_dataset(f, dataset1, Float64, ((1, 50, 6), (-1, 50, 6)); chunk=(1, 50, 6))
 
         # dataset2 처리
         if haskey(f, dataset2)
             delete_object(f, dataset2)
         end
-        create_dataset(f, dataset2, Float64, ((1, 3), (-1, 3)); chunk=(1, 3))
+        create_dataset(f, dataset2, Float64, ((1, 5), (-1, 5)); chunk=(1, 5))
 
-        # dataset3 처리
-        # if haskey(f, dataset3)
-        #     delete_object(f, dataset3)
-        # end
-        # create_dataset(f, dataset3, Float64, ((1, Lsize, Lsize), (-1, Lsize, Lsize)); chunk=(1, Lsize, Lsize))
     end
 
     generation = 0
@@ -78,7 +74,8 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         p_r1_r2_r3_r4 = p .< (r1 + r2 + r3 + r4)
         p_r1_r2_r3_r4_r5 = p .< (r1 + r2 + r3 + r4 + r5)
         p_r1_r2_r3_r4_r5_r6 = p .< (r1 + r2 + r3 + r4 + r5 + r6)
-
+        p_r1_r2_r3_r4_r5_r6_r7 = p .< (r1 + r2 + r3 + r4 + r5 + r6 + r7)
+        p_r1_r2_r3_r4_r5_r6_r7_r8 = p .< (r1 + r2 + r3 + r4 + r5 + r6 + r7 + r8)
         while Point
             for i in 1:Lsize^2
                 main = Lattice[R_idx[i]]
@@ -100,7 +97,7 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
                     end
                 # 선택
                 elseif p_r1_r2[i] 
-                    if neighbor != 0 && (neighbor - main == 1 || (main == 3 && neighbor == 1))
+                    if neighbor != 0 && (neighbor - main == 1 || (main == 5 && neighbor == 1))
                         G += 1
                         Lattice[C[i]] = 0
                         Trace[C[i]] = 0
@@ -124,8 +121,20 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
                         Lattice[C[i]] = 0
                         Trace[C[i]] = 0
                     end
+                elseif p_r1_r2_r3_r4_r5_r6[i] 
+                    if main == 4 && neighbor == 4
+                        G += 1
+                        Lattice[C[i]] = 0
+                        Trace[C[i]] = 0
+                    end
+                elseif p_r1_r2_r3_r4_r5_r6_r7[i] 
+                    if main == 5 && neighbor == 5
+                        G += 1
+                        Lattice[C[i]] = 0
+                        Trace[C[i]] = 0
+                    end
                 # 이동성
-                elseif p_r1_r2_r3_r4_r5_r6[i]
+                elseif p_r1_r2_r3_r4_r5_r6_r7_r8[i]
                     G += 1
                     Lattice[C[i]], Lattice[R_idx[i]] = main, neighbor
                     Trace[C[i]], Trace[R_idx[i]] = main_trace, neighbor_trace
@@ -145,6 +154,8 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         SA = Trace .* (Lattice .== 1)
         SB = Trace .* (Lattice .== 2)
         SC = Trace .* (Lattice .== 3)
+        SD = Trace .* (Lattice .== 4)
+        SE = Trace .* (Lattice .== 5)
         
         spe_a = nonzeros(SA)
         spe_b = nonzeros(SB)
@@ -152,26 +163,32 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
 
         bin_max = maximum([isempty(spe_a) ? 0 : maximum(spe_a),
                            isempty(spe_b) ? 0 : maximum(spe_b),
-                           isempty(spe_c) ? 0 : maximum(spe_c)])
+                           isempty(spe_c) ? 0 : maximum(spe_c),
+                           isempty(spe_d) ? 0 : maximum(spe_d),
+                           isempty(spe_e) ? 0 : maximum(spe_e)])
 
-        if bin_max > 0
+        if bin_max > 0            
             bin_edges = range(0, bin_max, length=51)  # bin 중앙값
 
             x_values, h_a = histogram_data(spe_a, bin_edges)
             _, h_b = histogram_data(spe_b, bin_edges)
             _, h_c = histogram_data(spe_c, bin_edges)
+            _, h_d = histogram_data(spe_d, bin_edges)
+            _, h_e = histogram_data(spe_e, bin_edges)
 
             # Save histogram data (extend dataset1)
             h5open(file_dir, "r+") do f
                 dset1 = f[dataset1]
                 curr_size = size(dset1, 1)
                 new_size = curr_size + 1
-                HDF5.set_extent_dims(dset1, (new_size, 50, 4))
+                HDF5.set_extent_dims(dset1, (new_size, 50, 6))
 
                 dset1[new_size, :, 1] = x_values
                 dset1[new_size, :, 2] = h_a
                 dset1[new_size, :, 3] = h_b
                 dset1[new_size, :, 4] = h_c
+                dset1[new_size, :, 5] = h_d
+                dset1[new_size, :, 6] = h_e
             end
         end
 
@@ -179,21 +196,23 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         nA = count(==(1), Lattice)
         nB = count(==(2), Lattice)
         nC = count(==(3), Lattice)
-        nExt = sum([nA, nB, nC] .== 0)
+        nD = count(==(4), Lattice)
+        nE = count(==(5), Lattice)
+        nExt = sum([nA, nB, nC, nD, nE] .== 0)
 
         # Save NumS data
         h5open(file_dir, "r+") do f
             dset2 = f[dataset2]
             curr_size = size(dset2, 1)
             new_size = curr_size + 1
-            HDF5.set_extent_dims(dset2, (new_size, 3))
-            dset2[new_size, :] = [nA, nB, nC]
+            HDF5.set_extent_dims(dset2, (new_size, 5))
+            dset2[new_size, :] = [nA, nB, nC, nD, nE]
         end
 
-        @printf("rn=%d, species=%d, %d, %d, nExt=%d, generation=%d\n", rn, nA, nB, nC, nExt, generation)
+        @printf("rn=%d, species=%d, %d, %d, %d, %d, nExt=%d, generation=%d\n", rn, nA, nB, nC, nD, nE, nExt, generation)
 
         # Stop if extinction or generation limit reached
-        if nExt == ext 
+        if nExt == ext
             Flag = false
         end
     end
@@ -251,13 +270,13 @@ function get_parameters()
 end
 
 # Get parameters
-Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end = get_parameters()
+    Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn_start, rn_end = get_parameters()
 
-# Main loop for simulations
+# # Main loop for simulations
 # for rn in rn_start:rn_end
-#     RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
+#     ERPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn)
 # end
-# Main loop parallelized using Threads.@threads
+
 Threads.@threads for rn in rn_start:rn_end
-    RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
+    ERPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn)
 end
