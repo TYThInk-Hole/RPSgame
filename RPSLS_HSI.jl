@@ -18,7 +18,7 @@ function RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # Setup HDF5 file and create datasets for Lattice and NumS
-    file_dir = "/Volumes/yoonD/RPS/RPSLS_inter_test.h5"
+    file_dir = "/Volumes/yoonD/RPS/RPSLS_inter_test_$(rn).h5"
     dataset1 = "/HSI/$(rn)"
     dataset2 = "/NumS/$(rn)"
 
