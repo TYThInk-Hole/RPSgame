@@ -286,5 +286,5 @@ end
 # end
 
 Threads.@threads for rn in rn_start:rn_end
-    ERPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn)
+    RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn)
 end
