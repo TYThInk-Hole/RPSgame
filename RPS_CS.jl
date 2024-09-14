@@ -27,7 +27,7 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 file setup
-    # file_dir = "/Volumes/yoondata/RPS/intra/RPS_intra_$rn.h5"
+    # file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra_$rn.h5"
     file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_$rn.h5"
     dataset1 = "$intra1/Histogram/$rn"
     dataset2 = "$intra1/NumS/$rn"
@@ -208,7 +208,7 @@ function histogram_data(species_data, bin_edges; normalize=false)
     if normalize
         counts = counts ./ sum(counts)
     end
-    x_values = (bin_edges[1:end-1] .+ bin_edges[2:end]) ./ 2  # bin 중앙값
+    x_values = range(0, stop=bin_edges[end], length=length(counts))  # bin 중앙값
     return x_values, counts
 end
 
