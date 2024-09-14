@@ -166,7 +166,7 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
                 dset1 = f[dataset1]
                 curr_size = size(dset1, 1)
                 new_size = curr_size + 1
-                HDF5.set_extent_dims(dset1, (new_size, 50, 4))
+                HDF5.set_extent_dims(dset1, (new_size, 50, 6))
 
                 dset1[new_size, :, 1] = a_values
                 dset1[new_size, :, 2] = b_values
