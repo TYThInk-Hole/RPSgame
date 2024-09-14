@@ -27,8 +27,8 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 file setup
-    file_dir = "/Volumes/yoondata/RPS/intra/RPS_intra_$rn.h5"
-    # file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_$rn.h5"
+    # file_dir = "/Volumes/yoondata/RPS/intra/RPS_intra_$rn.h5"
+    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_$rn.h5"
     dataset1 = "$intra1/Histogram/$rn"
     dataset2 = "$intra1/NumS/$rn"
     # dataset3 = "$intra1/Trace/$rn"
