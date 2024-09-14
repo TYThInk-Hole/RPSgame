@@ -27,7 +27,7 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 file setup
-    # file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra_$rn.h5"
+    # file_dir = "/Volumes/yoondata/RPS/intra/RPS_intra_$rn.h5"
     file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_$rn.h5"
     dataset1 = "$intra1/Histogram/$rn"
     dataset2 = "$intra1/NumS/$rn"
@@ -39,7 +39,7 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         if haskey(f, dataset1)
             delete_object(f, dataset1)
         end
-        create_dataset(f, dataset1, Float64, ((1, 50, 4), (-1, 50, 4)); chunk=(1, 50, 4))
+        create_dataset(f, dataset1, Float64, ((1, 50, 6), (-1, 50, 6)); chunk=(1, 50, 6))
 
         # dataset2 처리
         if haskey(f, dataset2)
@@ -157,9 +157,9 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         if bin_max > 0
             bin_edges = range(0, bin_max, length=51)  # bin 중앙값
 
-            x_values, h_a = histogram_data(spe_a, bin_edges)
-            _, h_b = histogram_data(spe_b, bin_edges)
-            _, h_c = histogram_data(spe_c, bin_edges)
+            a_values, h_a = histogram_data(spe_a, bin_edges)
+            b_values, h_b = histogram_data(spe_b, bin_edges)
+            c_values, h_c = histogram_data(spe_c, bin_edges)
 
             # Save histogram data (extend dataset1)
             h5open(file_dir, "r+") do f
@@ -168,10 +168,12 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
                 new_size = curr_size + 1
                 HDF5.set_extent_dims(dset1, (new_size, 50, 4))
 
-                dset1[new_size, :, 1] = x_values
-                dset1[new_size, :, 2] = h_a
-                dset1[new_size, :, 3] = h_b
-                dset1[new_size, :, 4] = h_c
+                dset1[new_size, :, 1] = a_values
+                dset1[new_size, :, 2] = b_values
+                dset1[new_size, :, 3] = c_values
+                dset1[new_size, :, 4] = h_a
+                dset1[new_size, :, 5] = h_b
+                dset1[new_size, :, 6] = h_c
             end
         end
 
@@ -207,8 +209,8 @@ function histogram_data(species_data, bin_edges; normalize=false)
     counts = h.weights
     if normalize
         counts = counts ./ sum(counts)
-    end
-    x_values = range(0, stop=bin_edges[end], length=length(counts))  # bin 중앙값
+    end    
+    x_values = range(0, stop=bin_edges[end], length=length(counts))
     return x_values, counts
 end
 
