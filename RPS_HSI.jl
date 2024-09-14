@@ -24,12 +24,13 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     dataset2 = "/NumS/$(rn)"
     
     h5open(file_dir, "cw") do f
-        if !haskey(f, dataset1)
-            create_dataset(f, dataset1, Float64, ((1,3), (-1, 3)); chunk=(1,3))
-        end
-        if !haskey(f, dataset2)
-            create_dataset(f, dataset2, Float64, ((1,3), (-1, 3)); chunk=(1,3))
-        end
+        # 데이터셋이 존재하면 삭제
+        haskey(f, dataset1) && delete_object(f, dataset1)
+        haskey(f, dataset2) && delete_object(f, dataset2)
+        
+        # 새 데이터셋 생성
+        create_dataset(f, dataset1, Float64, ((1,3), (-1, 3)); chunk=(1,3))
+        create_dataset(f, dataset2, Float64, ((1,3), (-1, 3)); chunk=(1,3))
     end
 
     generation = 0
@@ -103,9 +104,9 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
         B_indices = findall(x -> x == 2, Lattice)
         C_indices = findall(x -> x == 3, Lattice)
 
-        HSI_A = compute_HSI(Lattice, A_indices, A_indices, neighbor_shifts, Lsize, 2, 3)
-        HSI_B = compute_HSI(Lattice, B_indices, B_indices, neighbor_shifts, Lsize, 3, 1)
-        HSI_C = compute_HSI(Lattice, C_indices, C_indices, neighbor_shifts, Lsize, 1, 2)
+        HSI_A = compute_HSI(Lattice, A_indices, A_indices, neighbor_shifts, Lsize, 2, 3, 1)
+        HSI_B = compute_HSI(Lattice, B_indices, B_indices, neighbor_shifts, Lsize, 3, 1, 2)
+        HSI_C = compute_HSI(Lattice, C_indices, C_indices, neighbor_shifts, Lsize, 1, 2, 3)
 
         # Write data to HDF5 file
         h5open(file_dir, "r+") do f
@@ -140,7 +141,7 @@ function sub2ind(Lsize, row, col)
 end
 
 # Helper function to compute HSI
-function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species, predator_species)
+function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species, predator_species, same_species)
     num_cells = length(rows)
 
     if num_cells == 0
@@ -158,8 +159,9 @@ function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species, 
     prey_count = sum(neighbors .== prey_species, dims=2)
     predator_count = sum(neighbors .== predator_species, dims=2)
     empty_count = sum(neighbors .== 0, dims=2)
+    same_count = sum(neighbors .== same_species, dims=2)
 
-    return mean((prey_count .+ empty_count .- predator_count) ./ 4)
+    return mean((prey_count .+ 0.0*empty_count .-2.0*predator_count) ./ 4)
 end
 
 # Example usage:
@@ -177,7 +179,7 @@ function get_parameters()
             end
             return (
                 Int(params[1]),  # Lsize
-                params[2],       # reproduction_rate
+                params[2],       # reproduction_rate2222
                 params[3],       # selection_rate
                 Int(params[4]),  # mobility
                 params[5],       # para
