@@ -12,14 +12,15 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     M = para * 10^(-mobility * 0.1)
     eps = M * (Lsize^2) / 2
     r1 = reproduction_rate / (reproduction_rate + selection_rate + eps)
-    r2 = selection_rate / (reproduction_rate + eps)
+    r2 = selection_rate / (reproduction_rate + selection_rate + eps)
     r3 = eps / (reproduction_rate + selection_rate + eps)
 
     # Define neighbor offsets
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # Setup HDF5 file
-    file_dir = "/Volumes/yoonD/RPS/RPS_inter_test_$(rn).h5"
+    # file_dir = "/Volumes/yoonD/RPS/RPS_inter_test_$(rn).h5"
+    file_dir = "/home/ty/Desktop/yoonD/RPS/inter/RPS_inter_test.h5"
     dataset1 = "/HSI/$(rn)"
     dataset2 = "/NumS/$(rn)"
     
@@ -29,7 +30,7 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
         haskey(f, dataset2) && delete_object(f, dataset2)
         
         # 새 데이터셋 생성
-        create_dataset(f, dataset1, Float64, ((1,3), (-1, 3)); chunk=(1,3))
+        create_dataset(f, dataset1, Float64, ((1,4,3), (-1, 4, 3)); chunk=(1,4,3))
         create_dataset(f, dataset2, Float64, ((1,3), (-1, 3)); chunk=(1,3))
     end
 
@@ -116,11 +117,13 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
             new_size = curr_size + 1
             
             # 데이터셋 크기 확장
-            HDF5.set_extent_dims(dset1, (new_size, 3))
+            HDF5.set_extent_dims(dset1, (new_size, 4, 3))
             HDF5.set_extent_dims(dset2, (new_size, 3))
             
             # 데이터 쓰기
-            dset1[new_size, :] = [HSI_A, HSI_B, HSI_C]
+            dset1[new_size, :, 1] = HSI_A
+            dset1[new_size, :, 2] = HSI_B
+            dset1[new_size, :, 3] = HSI_C  
             dset2[new_size, :] = [nA, nB, nC]
         end
 
@@ -145,7 +148,7 @@ function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species, 
     num_cells = length(rows)
 
     if num_cells == 0
-        return 0.0
+        return [0.0, 0.0, 0.0, 0.0]  # 4개의 float 값을 반환
     end
 
     neighbors = zeros(Int, num_cells, size(neighbor_shifts, 1))
@@ -161,7 +164,12 @@ function compute_HSI(Lattice, rows, cols, neighbor_shifts, Lsize, prey_species, 
     empty_count = sum(neighbors .== 0, dims=2)
     same_count = sum(neighbors .== same_species, dims=2)
 
-    return mean((prey_count .+ 0.0*empty_count .-2.0*predator_count) ./ 4)
+    return [
+        mean((1.0*prey_count .+ 1.0*empty_count .-1.0*predator_count) ./ 4),
+        mean((0.0*prey_count .+ 1.0*empty_count .-1.0*predator_count) ./ 4),
+        mean((0.0*prey_count .+ 1.0*empty_count .-2.0*predator_count) ./ 4),
+        mean((0.0*prey_count .+ 2.0*empty_count .-1.0*predator_count) ./ 4)
+    ]
 end
 
 # Example usage:
