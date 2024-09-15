@@ -20,7 +20,7 @@ function RPS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
 
     # Setup HDF5 file
     # file_dir = "/Volumes/yoonD/RPS/RPS_inter_test_$(rn).h5"
-    file_dir = "/home/ty/Desktop/yoonD/RPS/inter/RPS_inter_test.h5"
+    file_dir = "/home/ty/Desktop/yoonD/RPS/inter/RPS_inter_test_$(rn).h5"
     dataset1 = "/HSI/$(rn)"
     dataset2 = "/NumS/$(rn)"
     
