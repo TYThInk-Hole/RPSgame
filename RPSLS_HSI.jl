@@ -18,14 +18,15 @@ function RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # Setup HDF5 file and create datasets for Lattice and NumS
-    file_dir = "/Volumes/yoonD/RPS/RPSLS_inter_test_$(rn).h5"
+    # file_dir = "/Volumes/yoonD/RPS/RPSLS_inter_test_$(rn).h5"
+    file_dir = "/home/ty/Desktop/yoonD/RPS/inter/RPSLS_inter_test_$(rn).h5"
     dataset1 = "/HSI/$(rn)"
     dataset2 = "/NumS/$(rn)"
 
     # Create the datasets with -1 for extendable dimension
     h5open(file_dir, "cw") do f
         if !haskey(f, dataset1)
-            create_dataset(f, dataset1, Float64, ((1,5), (-1, 5)); chunk=(1,5))
+            create_dataset(f, dataset1, Float64, ((1,4,5), (-1, 4, 5)); chunk=(1,4,5))
         end
         if !haskey(f, dataset2)
             create_dataset(f, dataset2, Float64, ((1,5), (-1, 5)); chunk=(1,5))
@@ -127,11 +128,15 @@ function RPSLS_HSI(Lsize, reproduction_rate, selection_rate, mobility, para, rn)
             new_size = curr_size + 1
 
             # Resize dataset before appending new data
-            HDF5.set_extent_dims(dset1, (new_size, 5))
+            HDF5.set_extent_dims(dset1, (new_size, 4, 5))
             HDF5.set_extent_dims(dset2, (new_size, 5))
 
             # Write the new generation's data
-            dset1[new_size, :] = [HSI_A, HSI_B, HSI_C, HSI_D, HSI_E]
+            dset1[new_size, :, 1] = HSI_A
+            dset1[new_size, :, 2] = HSI_B
+            dset1[new_size, :, 3] = HSI_C
+            dset1[new_size, :, 4] = HSI_D
+            dset1[new_size, :, 5] = HSI_E
             dset2[new_size, :] = [nA, nB, nC, nD, nE]
         end
 
@@ -154,7 +159,7 @@ function compute_HSI(Lattice, indices, neighbor_shifts, Lsize, prey_species, pre
     num_cells = length(indices)
 
     if num_cells == 0
-        return 0.0
+        return [0.0, 0.0, 0.0, 0.0]
     end
 
     neighbors = zeros(Int, num_cells, size(neighbor_shifts, 1))
@@ -169,7 +174,11 @@ function compute_HSI(Lattice, indices, neighbor_shifts, Lsize, prey_species, pre
     predator_count = sum(in.(neighbors, Ref(Set(predator_species))), dims=2)
     empty_count = sum(neighbors .== 0, dims=2)
 
-    return mean((prey_count .+ empty_count .- predator_count) ./ 4)
+    return [mean((1.0*prey_count .+ 1.0*empty_count .-1.0*predator_count) ./ 4),
+    mean((0.0*prey_count .+ 1.0*empty_count .-1.0*predator_count) ./ 4),
+    mean((0.0*prey_count .+ 1.0*empty_count .-2.0*predator_count) ./ 4),
+    mean((0.0*prey_count .+ 2.0*empty_count .-1.0*predator_count) ./ 4)
+]
 end
 
 # Example usage:
