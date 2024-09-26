@@ -146,6 +146,7 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
             # Save histogram data (extend dataset1)
             h5open(file_dir, "r+") do f
                 dset1 = f[dataset1]
+                dset2 = f[dataset2]
                 curr_size = size(dset1, 1)
                 new_size = curr_size + 1
                 HDF5.set_extent_dims(dset1, (new_size, 200, 200))
