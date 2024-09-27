@@ -115,13 +115,17 @@ if !isempty(A_MM_list) && !isempty(B_MM_list) && !isempty(C_MM_list)
         A_MM = A_MM_list[idx]
         B_MM = B_MM_list[idx]
         C_MM = C_MM_list[idx]
+        NumS = data_NumS[idx, :]
 
-        plot(1:length(A_MM), A_MM, label = "종 A", color = :red)
-        plot!(1:length(B_MM), B_MM, label = "종 B", color = :green)
-        plot!(1:length(C_MM), C_MM, label = "종 C", color = :blue)
+        p1 = scatter(1:length(A_MM), A_MM, label = "species A", color = :red, markershape = :circle)
+        p2 = scatter(1:length(B_MM), B_MM, label = "species B", color = :green, markershape = :circle)
+        p3 = scatter(1:length(C_MM), C_MM, label = "species C", color = :blue, markershape = :circle)
+        p4 = scatter(1:length(NumS), NumS, label = "NumS", color = :purple, markershape = :circle)
+
+        plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600))
     end
 
-    gif(anim, "species_animation.gif", fps = 30)
+    mp4(anim, "species_animation.mp4", fps = 30)  # gif 대신 mp4로 저장
     println("애니메이션이 'species_animation.gif'로 저장되었습니다.")
 else
     println("애니메이션을 생성할 데이터가 충분하지 않습니다.")
