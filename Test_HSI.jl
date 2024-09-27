@@ -1,5 +1,4 @@
-using Random, HDF5, Printf, Statistics
-using GLMakie
+using Random, HDF5, Printf, Statistics, Plots
 
 rn = 1;
 Lsize = 200;
@@ -112,36 +111,18 @@ end
 
 # 애니메이션 생성
 if !isempty(A_MM_list) && !isempty(B_MM_list) && !isempty(C_MM_list)
-    frames = []
-
-    # 프레임 수를 줄이기 위해 샘플링 (예: 매 10번째 프레임만 사용)
-    frame_indices = 1:20:L
-
-    for idx in frame_indices
-        @printf("make animation, process = %d/%d\n", idx, L/20)
+    anim = @animate for idx in 1:L
         A_MM = A_MM_list[idx]
         B_MM = B_MM_list[idx]
         C_MM = C_MM_list[idx]
 
-        fig = Figure(size = (800, 600))
-        ax1 = Axis(fig[1, 1], title = "종 A")
-        ax2 = Axis(fig[2, 1], title = "종 B")
-        ax3 = Axis(fig[3, 1], title = "종 C")
-
-        lines!(ax1, 1:length(A_MM), A_MM, color = :red)
-        lines!(ax2, 1:length(B_MM), B_MM, color = :green)
-        lines!(ax3, 1:length(C_MM), C_MM, color = :blue)
-
-        push!(frames, fig)
+        plot(1:length(A_MM), A_MM, label = "종 A", color = :red)
+        plot!(1:length(B_MM), B_MM, label = "종 B", color = :green)
+        plot!(1:length(C_MM), C_MM, label = "종 C", color = :blue)
     end
 
-    # 애니메이션 저장
-    record("species_animation.mp4", frames, framerate = 30) do frame
-        display(frame)
-    end
-
-    println("애니메이션이 'species_animation.mp4'로 저장되었습니다.")
+    gif(anim, "species_animation.gif", fps = 30)
+    println("애니메이션이 'species_animation.gif'로 저장되었습니다.")
 else
     println("애니메이션을 생성할 데이터가 충분하지 않습니다.")
 end
-
