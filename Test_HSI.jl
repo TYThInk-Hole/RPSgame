@@ -5,7 +5,7 @@ rn = 1;
 Lsize = 200;
 neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
-file_dir = "/Volumes/yoonD/RPS/RPS_intra_$(rn).h5"
+file_dir = "/home/ty/Desktop/yoonD/RPS/RPS_intra_$(rn).h5"
 
 data_Lattice = h5read(file_dir, "/Lattice/$(rn)")
 data_Trace = h5read(file_dir, "/Trace/$(rn)")
@@ -36,13 +36,9 @@ function compute_HSI(Lattice, indices, neighbor_shifts, Lsize, prey_species, pre
             neighbor_col = mod1(col + shift[2], Lsize)
             neighbor_value = Lattice[neighbor_row, neighbor_col]
 
-            if neighbor_value == prey_species
-                total_count += 1000
-            elseif neighbor_value == predator_species
-                total_count += 100
-            elseif neighbor_value == 0
+            if neighbor_value == predator_species
                 total_count += 10
-            else
+            elseif neighbor_value == 0
                 total_count += 1
             end
         end
@@ -119,9 +115,10 @@ if !isempty(A_MM_list) && !isempty(B_MM_list) && !isempty(C_MM_list)
     frames = []
 
     # 프레임 수를 줄이기 위해 샘플링 (예: 매 10번째 프레임만 사용)
-    frame_indices = 1:10:L
+    frame_indices = 1:20:L
 
     for idx in frame_indices
+        @printf("make animation, process = %d/%d\n", idx, L/20)
         A_MM = A_MM_list[idx]
         B_MM = B_MM_list[idx]
         C_MM = C_MM_list[idx]
