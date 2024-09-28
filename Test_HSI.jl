@@ -82,8 +82,6 @@ function process_chunk(chunk_start, chunk_end)
                     mean_birth = mean(local_birth_rates[indices[mask]])
                     push!(death, mean_death)
                     push!(birth, mean_birth)
-                    
-                    @printf("make animation, rn=%d, process = %d/%d\n", rn, idx, L)
                 end
             end
 
