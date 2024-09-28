@@ -90,9 +90,7 @@ end
     chunk_size = cld(L, nthreads())
     chunk_start = (t - 1) * chunk_size + 1
     chunk_end = min(t * chunk_size, L)
-    if chunk_start <= chunk_end  # 추가된 조건문
-        process_chunk(chunk_start, chunk_end)
-    end
+    process_chunk(chunk_start, chunk_end)
 end
 
 # 결과 추출
@@ -117,13 +115,13 @@ if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
         C_MM_b = C_MM_birth[idx]
         NumS = data_NumS[idx, :]
 
-        p1 = scatter(1:length(A_MM_d), filter(!=(0), A_MM_d), label = "A death_rate", color = :darkred, markershape = :circle, ylims = (-1, 5), legend = :topright)
+        p1 = scatter(1:length(A_MM_d), filter(!=(0), A_MM_d), label = "A death_rate", color = :darkred, markershape = :circle, ylims = (-1, y_max_A), legend = :topright)
         scatter!(p1, 1:length(A_MM_b), filter(!=(0), A_MM_b), label = "A birth_rate", color = :pink, markershape = :square)
         
-        p2 = scatter(1:length(B_MM_d), filter(!=(0), B_MM_d), label = "B death_rate", color = :darkgreen, markershape = :circle, ylims = (-1, 5), legend = :topright)
+        p2 = scatter(1:length(B_MM_d), filter(!=(0), B_MM_d), label = "B death_rate", color = :darkgreen, markershape = :circle, ylims = (-1, y_max_B), legend = :topright)
         scatter!(p2, 1:length(B_MM_b), filter(!=(0), B_MM_b), label = "B birth_rate", color = :lightgreen, markershape = :square)
         
-        p3 = scatter(1:length(C_MM_d), filter(!=(0), C_MM_d), label = "C death_rate", color = :darkblue, markershape = :circle, ylims = (-1, 5), legend = :topright)
+        p3 = scatter(1:length(C_MM_d), filter(!=(0), C_MM_d), label = "C death_rate", color = :darkblue, markershape = :circle, ylims = (-1, y_max_C), legend = :topright)
         scatter!(p3, 1:length(C_MM_b), filter(!=(0), C_MM_b), label = "C birth_rate", color = :lightblue, markershape = :square)
         
         p4 = scatter(1:length(NumS), filter(!=(0), NumS), label = "NumS", color = :purple, markershape = :circle, ylims = (0, y_max_NumS), legend = :topright)
