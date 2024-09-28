@@ -129,18 +129,36 @@ if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
 
         # 디버깅 출력 추가
 
-        p1 = scatter(1:length(A_MM_d), A_MM_d, label = "A death_rate", color = :darkred, markershape = :circle, ylims = (0, y_max_A), legend = :topright)
-        scatter!(p1, 1:length(A_MM_b), A_MM_b, label = "A birth_rate", color = :pink, markershape = :square)
+        p1 = scatter(1:length(A_MM_d), A_MM_d, label = "A death_rate", color = :darkred, markershape = :circle, markersize = 8, ylims = (0, y_max_A), legend = :topright)
+        scatter!(p1, 1:length(A_MM_b), A_MM_b, label = "A birth_rate", color = :pink, markershape = :square, markersize = 4)
         
-        p2 = scatter(1:length(B_MM_d), B_MM_d, label = "B death_rate", color = :darkgreen, markershape = :circle, ylims = (0, y_max_B), legend = :topright)
-        scatter!(p2, 1:length(B_MM_b), B_MM_b, label = "B birth_rate", color = :lightgreen, markershape = :square)
+        p3 = scatter(1:length(B_MM_d), B_MM_d, label = "B death_rate", color = :darkgreen, markershape = :circle, markersize = 8, ylims = (0, y_max_B), legend = :topright)
+        scatter!(p2, 1:length(B_MM_b), B_MM_b, label = "B birth_rate", color = :lightgreen, markershape = :square, markersize = 4)
         
-        p3 = scatter(1:length(C_MM_d), C_MM_d, label = "C death_rate", color = :darkblue, markershape = :circle, ylims = (0, y_max_C), legend = :topright)
-        scatter!(p3, 1:length(C_MM_b), C_MM_b, label = "C birth_rate", color = :lightblue, markershape = :square)
+        p5 = scatter(1:length(C_MM_d), C_MM_d, label = "C death_rate", color = :darkblue, markershape = :circle, markersize = 8, ylims = (0, y_max_C), legend = :topright)
+        scatter!(p3, 1:length(C_MM_b), C_MM_b, label = "C birth_rate", color = :lightblue, markershape = :square, markersize = 4)
         
-        p4 = scatter(1:length(NumS), NumS, label = "NumS", color = :purple, markershape = :circle, ylims = (0, y_max_NumS), legend = :topright)
+        p7 = scatter(1:length(NumS), NumS, label = "NumS", color = :purple, markershape = :circle, ylims = (0, y_max_NumS), legend = :topright)
 
-        plot(p1, p2, p3, p4, layout = (4, 1), size = (1200, 800), title = ["A species" "B species" "C species" "NumS"])
+        # age-class별 death와 birth의 갯수 그림 추가
+        age_classes = 1:maximum(NumS)
+        death_counts_A = [count(x -> x == age, A_MM_d) for age in age_classes]
+        birth_counts_A = [count(x -> x == age, A_MM_b) for age in age_classes]
+        death_counts_B = [count(x -> x == age, B_MM_d) for age in age_classes]
+        birth_counts_B = [count(x -> x == age, B_MM_b) for age in age_classes]
+        death_counts_C = [count(x -> x == age, C_MM_d) for age in age_classes]
+        birth_counts_C = [count(x -> x == age, C_MM_b) for age in age_classes]
+
+        p2 = bar(age_classes, death_counts_A, label = "A Death counts", color = :red, legend = :topright)
+        bar!(p5, age_classes, birth_counts_A, label = "A Birth counts", color = :blue)
+
+        p4 = bar(age_classes, death_counts_B, label = "B Death counts", color = :red, legend = :topright)
+        bar!(p6, age_classes, birth_counts_B, label = "B Birth counts", color = :blue)
+
+        p6 = bar(age_classes, death_counts_C, label = "C Death counts", color = :red, legend = :topright)
+        bar!(p7, age_classes, birth_counts_C, label = "C Birth counts", color = :blue)
+
+        plot(p1, p2, p3, p4, p5, p6, p7, layout = (7, 1), size = (1400, 1400), title = ["A species" "B species" "C species" "NumS" "A Age-class counts" "B Age-class counts" "C Age-class counts"])
         @printf("make animation, rn=%d, process = %d/%d\n", rn, idx, L)
     end
 
