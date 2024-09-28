@@ -1,5 +1,6 @@
 using Random, HDF5, Printf, Statistics, Plots
 using Base.Threads
+using Plots: @animate
 
 rn = 1;
 Lsize = 200;
@@ -22,7 +23,7 @@ C_MM_birth = Vector{Vector{Float64}}(undef, L)
 
 # Helper function to compute HSI
 function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shifts, Lsize, prey_species, predator_species)
-    @inbounds for (idx, cell) in enumerate(indices)
+    @inbounds for cell in indices
         row, col = cell.I
         birth_count = death_count = 0
         
@@ -35,8 +36,8 @@ function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shift
             birth_count += (neighbor_value == 0)
         end
         
-        birth_rates[idx] = birth_count
-        death_rates[idx] = death_count
+        birth_rates[row, col] = birth_count
+        death_rates[row, col] = death_count
     end
 end
 
@@ -51,8 +52,8 @@ species_data = [SpeciesData(Vector{Vector{Float64}}(undef, L), Vector{Vector{Flo
 
 # 스레드별 작업 함수
 function process_chunk(chunk_start, chunk_end)
-    local_birth_rates = zeros(Int, Lsize * Lsize)
-    local_death_rates = zeros(Int, Lsize * Lsize)
+    local_birth_rates = zeros(Int, Lsize, Lsize)
+    local_death_rates = zeros(Int, Lsize, Lsize)
 
     for i in chunk_start:chunk_end
         Lattice = @view data_Lattice[i, :, :]
@@ -62,11 +63,18 @@ function process_chunk(chunk_start, chunk_end)
             indices = findall(x -> x == species, Lattice)
             compute_HSI!(local_birth_rates, local_death_rates, Lattice, indices, neighbor_shifts, Lsize, prey, predator)
             
-            T = @view Trace[indices]
+            T = Trace[indices]
             max_T = isempty(T) ? 0 : Int(maximum(T))
 
-            death = [mean(local_death_rates[T .== j]) for j in 1:max_T if any(T .== j)]
-            birth = [mean(local_birth_rates[T .== j]) for j in 1:max_T if any(T .== j)]
+            death = Float64[]
+            birth = Float64[]
+            for j in 1:max_T
+                mask = T .== j
+                if any(mask)
+                    push!(death, mean(local_death_rates[indices[mask]]))
+                    push!(birth, mean(local_birth_rates[indices[mask]]))
+                end
+            end
 
             species_data[species].MM_death[i] = death
             species_data[species].MM_birth[i] = birth
@@ -92,9 +100,9 @@ C_MM_death, C_MM_birth = species_data[3].MM_death, species_data[3].MM_birth
 # 애니메이션 생성
 if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
     # y축 범위 계산
-    y_max_A = maximum(maximum.(A_MM_death)) + 0.5
-    y_max_B = maximum(maximum.(B_MM_death)) + 0.5
-    y_max_C = maximum(maximum.(C_MM_death)) + 0.5
+    y_max_A = maximum(maximum(x) for x in A_MM_death if !isempty(x); init=0) + 0.5
+    y_max_B = maximum(maximum(x) for x in B_MM_death if !isempty(x); init=0) + 0.5
+    y_max_C = maximum(maximum(x) for x in C_MM_death if !isempty(x); init=0) + 0.5
     y_max_NumS = maximum(maximum.(data_NumS)) + 1000
 
     anim = @animate for idx in 1:L
@@ -106,22 +114,23 @@ if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
         C_MM_b = C_MM_birth[idx]
         NumS = data_NumS[idx, :]
 
-        p1 = plot(1:length(A_MM_d), A_MM_d, label = "A 사망률", color = :red, markershape = :circle, ylims = (0, y_max_A))
-        plot!(p1, 1:length(A_MM_b), A_MM_b, label = "A 출생률", color = :pink, markershape = :square)
+        p1 = plot(1:length(A_MM_d), A_MM_d, label = "A death_rate", color = :red, markershape = :circle, ylims = (0, y_max_A))
+        plot!(p1, 1:length(A_MM_b), A_MM_b, label = "A birth_rate", color = :pink, markershape = :square)
         
-        p2 = plot(1:length(B_MM_d), B_MM_d, label = "B 사망률", color = :green, markershape = :circle, ylims = (0, y_max_B))
-        plot!(p2, 1:length(B_MM_b), B_MM_b, label = "B 출생률", color = :lightgreen, markershape = :square)
+        p2 = plot(1:length(B_MM_d), B_MM_d, label = "B death_rate", color = :green, markershape = :circle, ylims = (0, y_max_B))
+        plot!(p2, 1:length(B_MM_b), B_MM_b, label = "B birth_rate", color = :lightgreen, markershape = :square)
         
-        p3 = plot(1:length(C_MM_d), C_MM_d, label = "C 사망률", color = :blue, markershape = :circle, ylims = (0, y_max_C))
-        plot!(p3, 1:length(C_MM_b), C_MM_b, label = "C 출생률", color = :lightblue, markershape = :square)
+        p3 = plot(1:length(C_MM_d), C_MM_d, label = "C death_rate", color = :blue, markershape = :circle, ylims = (0, y_max_C))
+        plot!(p3, 1:length(C_MM_b), C_MM_b, label = "C birth_rate", color = :lightblue, markershape = :square)
         
         p4 = plot(1:length(NumS), NumS, label = "NumS", color = :purple, markershape = :circle, ylims = (0, y_max_NumS))
 
-        plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600), title = ["A 종" "B 종" "C 종" "NumS"])
+        plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600), title = ["A species" "B species" "C species" "NumS"])
     end
 
     mp4(anim, "species_animation.mp4", fps = 30)  # gif 대신 mp4로 저장
-    println("애니메이션이 'species_animation.gif'로 저장되었습니다.")
+    println("애니메이션이 'species_animation.mp4'로 저장되었습니다.")
 else
     println("애니메이션을 생성할 데이터가 충분하지 않습니다.")
 end
+
