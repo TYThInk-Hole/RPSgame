@@ -40,52 +40,54 @@ function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shift
     end
 end
 
-# 사전 할당
-max_cells = Lsize * Lsize
-birth_rates = [zeros(Int, max_cells) for _ in 1:nthreads()]
-death_rates = [zeros(Int, max_cells) for _ in 1:nthreads()]
-
-@threads for i in 1:L
-    tid = threadid()
-    Lattice = @view data_Lattice[i, :, :]
-    Trace = @view data_Trace[i, :, :]
-
-    # 종별 인덱스 찾기
-    A_indices = findall(x -> x == 1, Lattice)
-    B_indices = findall(x -> x == 2, Lattice)
-    C_indices = findall(x -> x == 3, Lattice)
-
-    # HSI 계산
-    compute_HSI!(birth_rates[tid], death_rates[tid], Lattice, A_indices, neighbor_shifts, Lsize, 2, 3)
-    A_birth, A_death = view(birth_rates[tid], 1:length(A_indices)), view(death_rates[tid], 1:length(A_indices))
-    
-    compute_HSI!(birth_rates[tid], death_rates[tid], Lattice, B_indices, neighbor_shifts, Lsize, 3, 1)
-    B_birth, B_death = view(birth_rates[tid], 1:length(B_indices)), view(death_rates[tid], 1:length(B_indices))
-    
-    compute_HSI!(birth_rates[tid], death_rates[tid], Lattice, C_indices, neighbor_shifts, Lsize, 1, 2)
-    C_birth, C_death = view(birth_rates[tid], 1:length(C_indices)), view(death_rates[tid], 1:length(C_indices))
-
-    A_T = @view Trace[A_indices]
-    B_T = @view Trace[B_indices]
-    C_T = @view Trace[C_indices]
-
-    # 각 종의 최대 나이 계산
-    max_A_T = isempty(A_T) ? 0 : Int(maximum(A_T))
-    max_B_T = isempty(B_T) ? 0 : Int(maximum(B_T))
-    max_C_T = isempty(C_T) ? 0 : Int(maximum(C_T))
-
-    # 평균값 계산
-    A_MM_death[i] = [mean(A_death[A_T .== j]) for j in 1:max_A_T if any(A_T .== j)]
-    A_MM_birth[i] = [mean(A_birth[A_T .== j]) for j in 1:max_A_T if any(A_T .== j)]
-    
-    B_MM_death[i] = [mean(B_death[B_T .== j]) for j in 1:max_B_T if any(B_T .== j)]
-    B_MM_birth[i] = [mean(B_birth[B_T .== j]) for j in 1:max_B_T if any(B_T .== j)]
-    
-    C_MM_death[i] = [mean(C_death[C_T .== j]) for j in 1:max_C_T if any(C_T .== j)]
-    C_MM_birth[i] = [mean(C_birth[C_T .== j]) for j in 1:max_C_T if any(C_T .== j)]
-
-    @printf("rn=%d, process = %d/%d\n", rn, i, L)
+# 결과를 저장할 구조체 정의
+struct SpeciesData
+    MM_death::Vector{Vector{Float64}}
+    MM_birth::Vector{Vector{Float64}}
 end
+
+# 각 종별 데이터 저장
+species_data = [SpeciesData(Vector{Vector{Float64}}(undef, L), Vector{Vector{Float64}}(undef, L)) for _ in 1:3]
+
+# 스레드별 작업 함수
+function process_chunk(chunk_start, chunk_end)
+    local_birth_rates = zeros(Int, Lsize * Lsize)
+    local_death_rates = zeros(Int, Lsize * Lsize)
+
+    for i in chunk_start:chunk_end
+        Lattice = @view data_Lattice[i, :, :]
+        Trace = @view data_Trace[i, :, :]
+
+        for (species, prey, predator) in [(1, 2, 3), (2, 3, 1), (3, 1, 2)]
+            indices = findall(x -> x == species, Lattice)
+            compute_HSI!(local_birth_rates, local_death_rates, Lattice, indices, neighbor_shifts, Lsize, prey, predator)
+            
+            T = @view Trace[indices]
+            max_T = isempty(T) ? 0 : Int(maximum(T))
+
+            death = [mean(local_death_rates[T .== j]) for j in 1:max_T if any(T .== j)]
+            birth = [mean(local_birth_rates[T .== j]) for j in 1:max_T if any(T .== j)]
+
+            species_data[species].MM_death[i] = death
+            species_data[species].MM_birth[i] = birth
+        end
+
+        @printf("rn=%d, process = %d/%d\n", rn, i, L)
+    end
+end
+
+# 멀티스레딩 실행
+@threads for t in 1:nthreads()
+    chunk_size = cld(L, nthreads())
+    chunk_start = (t - 1) * chunk_size + 1
+    chunk_end = min(t * chunk_size, L)
+    process_chunk(chunk_start, chunk_end)
+end
+
+# 결과 추출
+A_MM_death, A_MM_birth = species_data[1].MM_death, species_data[1].MM_birth
+B_MM_death, B_MM_birth = species_data[2].MM_death, species_data[2].MM_birth
+C_MM_death, C_MM_birth = species_data[3].MM_death, species_data[3].MM_birth
 
 # 애니메이션 생성
 if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
