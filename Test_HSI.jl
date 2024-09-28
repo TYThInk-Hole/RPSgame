@@ -6,8 +6,8 @@ rn = 1;
 Lsize = 200;
 neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
-file_dir = "/home/ty/Desktop/yoonD/RPS/RPS_intrat_$(rn).h5"
-# file_dir = "/Volumes/yoonD/RPS/RPS_intra_$(rn).h5"
+# file_dir = "/home/ty/Desktop/yoonD/RPS/RPS_intrat_$(rn).h5"
+file_dir = "/Volumes/yoondata/RPS/RPS_intra_$(rn).h5"
 data_Lattice = h5read(file_dir, "/Lattice/$(rn)")
 data_Trace = h5read(file_dir, "/Trace/$(rn)")
 data_NumS = h5read(file_dir, "/NumS/$(rn)")
@@ -32,9 +32,12 @@ function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shift
             neighbor_col = mod1(col + shift[2], Lsize)
             neighbor_value = Lattice[neighbor_row, neighbor_col]
 
-            death_count += (neighbor_value == predator_species)
-            death_count += (neighbor_value == same_species)
-            birth_count += (neighbor_value == 0)
+            if neighbor_value == predator_species || neighbor_value == same_species
+                death_count += 1
+            end
+            if neighbor_value == 0
+                birth_count += 1
+            end
         end
         
         birth_rates[row, col] = birth_count
