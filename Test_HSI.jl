@@ -26,28 +26,24 @@ function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shift
     @inbounds for cell in indices
         row, col = cell.I
         birth_count = death_count = 0
-        
+
         for shift in neighbor_shifts
             neighbor_row = mod1(row + shift[1], Lsize)
             neighbor_col = mod1(col + shift[2], Lsize)
             neighbor_value = Lattice[neighbor_row, neighbor_col]
 
-            if neighbor_value == predator_species || neighbor_value == same_species
+            # Modify the condition to exclude same species from death count
+            if neighbor_value == predator_species
                 death_count += 1
             end
             if neighbor_value == 0
                 birth_count += 1
             end
         end
-        
+
         birth_rates[row, col] = birth_count
         death_rates[row, col] = death_count
     end
-
-    # # local_death_rates 값의 범위 출력
-    # min_death = minimum(death_rates)
-    # max_death = maximum(death_rates)
-    # println("compute_HSI! - local_death_rates: min = $min_death, max = $max_death")
 end
 
 # 결과를 저장할 구조체 정의
@@ -61,21 +57,19 @@ species_data = [SpeciesData(Vector{Vector{Float64}}(undef, L), Vector{Vector{Flo
 
 # 스레드별 작업 함수
 function process_chunk(chunk_start, chunk_end)
-    local_birth_rates = zeros(Int, Lsize, Lsize)
-    local_death_rates = zeros(Int, Lsize, Lsize)
-
     for i in chunk_start:chunk_end
+        # Initialize arrays at the beginning of each time step
+        local_birth_rates = zeros(Int, Lsize, Lsize)
+        local_death_rates = zeros(Int, Lsize, Lsize)
+
         Lattice = @view data_Lattice[i, :, :]
         Trace = @view data_Trace[i, :, :]
 
         for (species, prey, predator, same) in [(1, 2, 3, 1), (2, 3, 1, 2), (3, 1, 2, 3)]
-            # 여기서 배열을 초기화합니다.
-            local_birth_rates .= 0
-            local_death_rates .= 0
-
+            # No need to reset arrays here as they are fresh per time step
             indices = findall(x -> x == species, Lattice)
             compute_HSI!(local_birth_rates, local_death_rates, Lattice, indices, neighbor_shifts, Lsize, prey, predator, same)
-            
+                
             T = Trace[indices]
             max_T = isempty(T) ? 0 : Int(maximum(T))
 
@@ -101,6 +95,7 @@ function process_chunk(chunk_start, chunk_end)
         @printf("rn=%d, process = %d/%d\n", rn, i, L)
     end
 end
+
 
 # 멀티스레딩 실행
 @threads for t in 1:nthreads()
