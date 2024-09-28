@@ -40,8 +40,9 @@ function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shift
             end
         end
         
-        birth_rates[row, col] = birth_count
-        death_rates[row, col] = death_count
+        # Ensure the counts are within the range 0 to 4
+        birth_rates[row, col] = min(birth_count, 4)
+        death_rates[row, col] = min(death_count, 4)
     end
 end
 
