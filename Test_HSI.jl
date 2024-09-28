@@ -44,10 +44,10 @@ function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shift
         death_rates[row, col] = death_count
     end
 
-    # local_death_rates 값의 범위 출력
-    min_death = minimum(death_rates)
-    max_death = maximum(death_rates)
-    println("compute_HSI! - local_death_rates: min = $min_death, max = $max_death")
+    # # local_death_rates 값의 범위 출력
+    # min_death = minimum(death_rates)
+    # max_death = maximum(death_rates)
+    # println("compute_HSI! - local_death_rates: min = $min_death, max = $max_death")
 end
 
 # 결과를 저장할 구조체 정의
@@ -85,7 +85,7 @@ function process_chunk(chunk_start, chunk_end)
                     selected_birth_rates = local_birth_rates[selected_indices]
                     mean_death = mean(selected_death_rates)
                     mean_birth = mean(selected_birth_rates)
-                    println("species: $species, time: $j, selected_indices: $selected_indices, selected_death_rates: $selected_death_rates, mean_death: $mean_death, selected_birth_rates: $selected_birth_rates, mean_birth: $mean_birth")  # 디버깅 출력 추가
+                    # println("species: $species, time: $j, selected_indices: $selected_indices, selected_death_rates: $selected_death_rates, mean_death: $mean_death, selected_birth_rates: $selected_birth_rates, mean_birth: $mean_birth")  # 디버깅 출력 추가
                     push!(death, mean_death)
                     push!(birth, mean_birth)
                 end
@@ -97,8 +97,8 @@ function process_chunk(chunk_start, chunk_end)
 
         # local_death_rates 값의 범위 출력
         min_death = minimum(local_death_rates)
-        max_death = maximum(local_death_rates)
-        println("process_chunk - local_death_rates: min = $min_death, max = $max_death")
+        max_death = maximum(local_death_rates)      
+        # println("process_chunk - local_death_rates: min = $min_death, max = $max_death")
 
         @printf("rn=%d, process = %d/%d\n", rn, i, L)
     end
