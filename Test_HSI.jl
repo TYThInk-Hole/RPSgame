@@ -44,8 +44,7 @@ function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shift
         birth_rates[row, col] = birth_count
         death_rates[row, col] = death_count
         
-        # 디버깅 출력 추가
-        @printf("cell (%d, %d): death_count = %d, birth_count = %d\n", row, col, death_count, birth_count)
+        
     end
 end
 
@@ -84,8 +83,7 @@ function process_chunk(chunk_start, chunk_end)
                     push!(death, mean_death)
                     push!(birth, mean_birth)
                     
-                    # 디버깅 출력 추가
-                    @printf("species %d, time %d: mean_death = %f, mean_birth = %f\n", species, j, mean_death, mean_birth)
+                    @printf("make animation, rn=%d, process = %d/%d\n", rn, idx, L)
                 end
             end
 
