@@ -6,7 +6,7 @@ rn = 1;
 Lsize = 200;
 neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
-file_dir = "/home/ty/Desktop/yoonD/RPS/RPS_intra_$(rn).h5"
+file_dir = "/home/ty/Desktop/yoonD/RPS/RPS_intrat_$(rn).h5"
 # file_dir = "/Volumes/yoonD/RPS/RPS_intra_$(rn).h5"
 data_Lattice = h5read(file_dir, "/Lattice/$(rn)")
 data_Trace = h5read(file_dir, "/Trace/$(rn)")
@@ -129,8 +129,8 @@ if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
         @printf("make animation, rn=%d, process = %d/%d\n", rn, idx, L)
     end
 
-    mp4(anim, "species_animation.mp4", fps = 30)
-    println("애니메이션이 'species_animation.mp4'로 저장되었습니다.")
+    mp4(anim, "1_species_animation.mp4", fps = 30)
+    println("애니메이션이 '1_species_animation.mp4'로 저장되었습니다.")
 else
     println("애니메이션을 생성할 데이터가 충분하지 않습니다.")
 end
