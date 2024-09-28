@@ -40,9 +40,12 @@ function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shift
             end
         end
         
-        # Ensure the counts are within the range 0 to 4
-        birth_rates[row, col] = min(birth_count, 4)
-        death_rates[row, col] = min(death_count, 4)
+        # Remove the min function to allow full range of counts
+        birth_rates[row, col] = birth_count
+        death_rates[row, col] = death_count
+        
+        # 디버깅 출력 추가
+        @printf("cell (%d, %d): death_count = %d, birth_count = %d\n", row, col, death_count, birth_count)
     end
 end
 
@@ -76,8 +79,13 @@ function process_chunk(chunk_start, chunk_end)
             for j in 1:max_T
                 mask = T .== j
                 if any(mask)
-                    push!(death, mean(local_death_rates[indices[mask]]))
-                    push!(birth, mean(local_birth_rates[indices[mask]]))
+                    mean_death = mean(local_death_rates[indices[mask]])
+                    mean_birth = mean(local_birth_rates[indices[mask]])
+                    push!(death, mean_death)
+                    push!(birth, mean_birth)
+                    
+                    # 디버깅 출력 추가
+                    @printf("species %d, time %d: mean_death = %f, mean_birth = %f\n", species, j, mean_death, mean_birth)
                 end
             end
 
@@ -119,6 +127,9 @@ if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
         C_MM_b = replace(C_MM_birth[idx], 0 => NaN)
         NumS = data_NumS[idx, :]
 
+        # 디버깅 출력 추가
+        @printf("idx = %d: A_MM_d = %s, B_MM_d = %s, C_MM_d = %s\n", idx, string(A_MM_d), string(B_MM_d), string(C_MM_d))
+
         p1 = scatter(1:length(A_MM_d), A_MM_d, label = "A death_rate", color = :darkred, markershape = :circle, ylims = (0, y_max_A), legend = :topright)
         scatter!(p1, 1:length(A_MM_b), A_MM_b, label = "A birth_rate", color = :pink, markershape = :square)
         
@@ -139,4 +150,3 @@ if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
 else
     println("애니메이션을 생성할 데이터가 충분하지 않습니다.")
 end
-
