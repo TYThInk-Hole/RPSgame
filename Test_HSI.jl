@@ -6,8 +6,8 @@ rn = 1;
 Lsize = 200;
 neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
-# file_dir = "/home/ty/Desktop/yoonD/RPS/RPS_intrat_$(rn).h5"
-file_dir = "/Volumes/yoondata/RPS/RPS_intra_$(rn).h5"
+file_dir = "/home/ty/Desktop/yoonD/RPS/RPS_intrat_$(rn).h5"
+# file_dir = "/Volumes/yoondata/RPS/RPS_intra_$(rn).h5"
 data_Lattice = h5read(file_dir, "/Lattice/$(rn)")
 data_Trace = h5read(file_dir, "/Trace/$(rn)")
 data_NumS = h5read(file_dir, "/NumS/$(rn)")
