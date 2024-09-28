@@ -124,7 +124,6 @@ if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
         NumS = data_NumS[idx, :]
 
         # 디버깅 출력 추가
-        @printf("idx = %d: A_MM_d = %s, B_MM_d = %s, C_MM_d = %s\n", idx, string(A_MM_d), string(B_MM_d), string(C_MM_d))
 
         p1 = scatter(1:length(A_MM_d), A_MM_d, label = "A death_rate", color = :darkred, markershape = :circle, ylims = (0, y_max_A), legend = :topright)
         scatter!(p1, 1:length(A_MM_b), A_MM_b, label = "A birth_rate", color = :pink, markershape = :square)
