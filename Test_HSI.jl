@@ -90,7 +90,9 @@ end
     chunk_size = cld(L, nthreads())
     chunk_start = (t - 1) * chunk_size + 1
     chunk_end = min(t * chunk_size, L)
-    process_chunk(chunk_start, chunk_end)
+    if chunk_start <= chunk_end  # 추가된 조건문
+        process_chunk(chunk_start, chunk_end)
+    end
 end
 
 # 결과 추출
