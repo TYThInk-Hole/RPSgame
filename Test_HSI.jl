@@ -22,7 +22,7 @@ C_MM_death = Vector{Vector{Float64}}(undef, L)
 C_MM_birth = Vector{Vector{Float64}}(undef, L)
 
 # Helper function to compute HSI
-function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shifts, Lsize, prey_species, predator_species)
+function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shifts, Lsize, prey_species, predator_species, same_species)
     @inbounds for cell in indices
         row, col = cell.I
         birth_count = death_count = 0
@@ -60,9 +60,9 @@ function process_chunk(chunk_start, chunk_end)
         Lattice = @view data_Lattice[i, :, :]
         Trace = @view data_Trace[i, :, :]
 
-        for (species, prey, predator) in [(1, 2, 3), (2, 3, 1), (3, 1, 2)]
+        for (species, prey, predator, same) in [(1, 2, 3, 1), (2, 3, 1, 2), (3, 1, 2, 3)]
             indices = findall(x -> x == species, Lattice)
-            compute_HSI!(local_birth_rates, local_death_rates, Lattice, indices, neighbor_shifts, Lsize, prey, predator)
+            compute_HSI!(local_birth_rates, local_death_rates, Lattice, indices, neighbor_shifts, Lsize, prey, predator, same)
             
             T = Trace[indices]
             max_T = isempty(T) ? 0 : Int(maximum(T))
