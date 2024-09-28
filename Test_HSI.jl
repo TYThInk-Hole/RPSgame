@@ -22,30 +22,28 @@ C_MM_birth = Vector{Vector{Float64}}(undef, L)
 
 # Helper function to compute HSI
 function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shifts, Lsize, prey_species, predator_species)
-    fill!(birth_rates, 0)
-    fill!(death_rates, 0)
-
     @inbounds for (idx, cell) in enumerate(indices)
-        row, col = Tuple(cell)
+        row, col = cell.I
+        birth_count = death_count = 0
         
         for shift in neighbor_shifts
             neighbor_row = mod1(row + shift[1], Lsize)
             neighbor_col = mod1(col + shift[2], Lsize)
             neighbor_value = Lattice[neighbor_row, neighbor_col]
 
-            if neighbor_value == predator_species
-                death_rates[idx] += 1 
-            elseif neighbor_value == 0
-                birth_rates[idx] += 1
-            end
+            death_count += (neighbor_value == predator_species)
+            birth_count += (neighbor_value == 0)
         end
+        
+        birth_rates[idx] = birth_count
+        death_rates[idx] = death_count
     end
 end
 
 # 사전 할당
 max_cells = Lsize * Lsize
-birth_rates = [zeros(Float64, max_cells) for _ in 1:nthreads()]
-death_rates = [zeros(Float64, max_cells) for _ in 1:nthreads()]
+birth_rates = [zeros(Int, max_cells) for _ in 1:nthreads()]
+death_rates = [zeros(Int, max_cells) for _ in 1:nthreads()]
 
 @threads for i in 1:L
     tid = threadid()
