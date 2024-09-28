@@ -114,21 +114,22 @@ if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
         C_MM_b = C_MM_birth[idx]
         NumS = data_NumS[idx, :]
 
-        p1 = plot(1:length(A_MM_d), A_MM_d, label = "A death_rate", color = :red, markershape = :circle, ylims = (0, y_max_A))
-        plot!(p1, 1:length(A_MM_b), A_MM_b, label = "A birth_rate", color = :pink, markershape = :square)
+        p1 = scatter(1:length(A_MM_d), A_MM_d, label = "A death_rate", color = :darkred, markershape = :circle, ylims = (0, y_max_A), legend = :topright)
+        scatter!(p1, 1:length(A_MM_b), A_MM_b, label = "A birth_rate", color = :pink, markershape = :square)
         
-        p2 = plot(1:length(B_MM_d), B_MM_d, label = "B death_rate", color = :green, markershape = :circle, ylims = (0, y_max_B))
-        plot!(p2, 1:length(B_MM_b), B_MM_b, label = "B birth_rate", color = :lightgreen, markershape = :square)
+        p2 = scatter(1:length(B_MM_d), B_MM_d, label = "B death_rate", color = :darkgreen, markershape = :circle, ylims = (0, y_max_B), legend = :topright)
+        scatter!(p2, 1:length(B_MM_b), B_MM_b, label = "B birth_rate", color = :lightgreen, markershape = :square)
         
-        p3 = plot(1:length(C_MM_d), C_MM_d, label = "C death_rate", color = :blue, markershape = :circle, ylims = (0, y_max_C))
-        plot!(p3, 1:length(C_MM_b), C_MM_b, label = "C birth_rate", color = :lightblue, markershape = :square)
+        p3 = scatter(1:length(C_MM_d), C_MM_d, label = "C death_rate", color = :darkblue, markershape = :circle, ylims = (0, y_max_C), legend = :topright)
+        scatter!(p3, 1:length(C_MM_b), C_MM_b, label = "C birth_rate", color = :lightblue, markershape = :square)
         
-        p4 = plot(1:length(NumS), NumS, label = "NumS", color = :purple, markershape = :circle, ylims = (0, y_max_NumS))
+        p4 = scatter(1:length(NumS), NumS, label = "NumS", color = :purple, markershape = :circle, ylims = (0, y_max_NumS), legend = :topright)
 
-        plot(p1, p2, p3, p4, layout = (2, 2), size = (800, 600), title = ["A species" "B species" "C species" "NumS"])
+        plot(p1, p2, p3, p4, layout = (4, 1), size = (1200, 800), title = ["A species" "B species" "C species" "NumS"])
+        @printf("make animation, rn=%d, process = %d/%d\n", rn, idx, L)
     end
 
-    mp4(anim, "species_animation.mp4", fps = 30)  # gif 대신 mp4로 저장
+    mp4(anim, "species_animation.mp4", fps = 30)
     println("애니메이션이 'species_animation.mp4'로 저장되었습니다.")
 else
     println("애니메이션을 생성할 데이터가 충분하지 않습니다.")
