@@ -33,6 +33,7 @@ function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shift
             neighbor_value = Lattice[neighbor_row, neighbor_col]
 
             death_count += (neighbor_value == predator_species)
+            death_count += (neighbor_value == same_species)
             birth_count += (neighbor_value == 0)
         end
         
