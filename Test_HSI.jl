@@ -107,24 +107,24 @@ if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
     y_max_NumS = maximum(maximum.(data_NumS)) + 1000
 
     anim = @animate for idx in 1:L
-        A_MM_d = A_MM_death[idx]
-        B_MM_d = B_MM_death[idx]
-        C_MM_d = C_MM_death[idx]
-        A_MM_b = A_MM_birth[idx]
-        B_MM_b = B_MM_birth[idx]
-        C_MM_b = C_MM_birth[idx]
+        A_MM_d = replace(A_MM_death[idx], 0 => NaN)
+        B_MM_d = replace(B_MM_death[idx], 0 => NaN)
+        C_MM_d = replace(C_MM_death[idx], 0 => NaN)
+        A_MM_b = replace(A_MM_birth[idx], 0 => NaN)
+        B_MM_b = replace(B_MM_birth[idx], 0 => NaN)
+        C_MM_b = replace(C_MM_birth[idx], 0 => NaN)
         NumS = data_NumS[idx, :]
 
-        p1 = scatter(1:length(A_MM_d), filter(!=(0), A_MM_d), label = "A death_rate", color = :darkred, markershape = :circle, ylims = (-1, y_max_A), legend = :topright)
-        scatter!(p1, 1:length(A_MM_b), filter(!=(0), A_MM_b), label = "A birth_rate", color = :pink, markershape = :square)
+        p1 = scatter(1:length(A_MM_d), A_MM_d, label = "A death_rate", color = :darkred, markershape = :circle, ylims = (0, y_max_A), legend = :topright)
+        scatter!(p1, 1:length(A_MM_b), A_MM_b, label = "A birth_rate", color = :pink, markershape = :square)
         
-        p2 = scatter(1:length(B_MM_d), filter(!=(0), B_MM_d), label = "B death_rate", color = :darkgreen, markershape = :circle, ylims = (-1, y_max_B), legend = :topright)
-        scatter!(p2, 1:length(B_MM_b), filter(!=(0), B_MM_b), label = "B birth_rate", color = :lightgreen, markershape = :square)
+        p2 = scatter(1:length(B_MM_d), B_MM_d, label = "B death_rate", color = :darkgreen, markershape = :circle, ylims = (0, y_max_B), legend = :topright)
+        scatter!(p2, 1:length(B_MM_b), B_MM_b, label = "B birth_rate", color = :lightgreen, markershape = :square)
         
-        p3 = scatter(1:length(C_MM_d), filter(!=(0), C_MM_d), label = "C death_rate", color = :darkblue, markershape = :circle, ylims = (-1, y_max_C), legend = :topright)
-        scatter!(p3, 1:length(C_MM_b), filter(!=(0), C_MM_b), label = "C birth_rate", color = :lightblue, markershape = :square)
+        p3 = scatter(1:length(C_MM_d), C_MM_d, label = "C death_rate", color = :darkblue, markershape = :circle, ylims = (0, y_max_C), legend = :topright)
+        scatter!(p3, 1:length(C_MM_b), C_MM_b, label = "C birth_rate", color = :lightblue, markershape = :square)
         
-        p4 = scatter(1:length(NumS), filter(!=(0), NumS), label = "NumS", color = :purple, markershape = :circle, ylims = (0, y_max_NumS), legend = :topright)
+        p4 = scatter(1:length(NumS), NumS, label = "NumS", color = :purple, markershape = :circle, ylims = (0, y_max_NumS), legend = :topright)
 
         plot(p1, p2, p3, p4, layout = (4, 1), size = (1200, 800), title = ["A species" "B species" "C species" "NumS"])
         @printf("make animation, rn=%d, process = %d/%d\n", rn, idx, L)
