@@ -7,7 +7,7 @@ Lsize = 200;
 neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]  # 상, 하, 좌, 우 방향만 포함
 
 # file_dir = "/home/ty/Desktop/yoonD/RPS/RPS_intrat_$(rn).h5"
-file_dir = "/Volumes/yoonD/RPS/RPS_intrat_$(rn).h5"
+file_dir = "/Volumes/yoonD/RPS/RPS_intra_$(rn).h5"
 data_Lattice = h5read(file_dir, "/Lattice/$(rn)")
 data_Trace = h5read(file_dir, "/Trace/$(rn)")
 data_NumS = h5read(file_dir, "/NumS/$(rn)")
@@ -22,17 +22,21 @@ C_MM_death = Vector{Vector{Float64}}(undef, L)
 C_MM_birth = Vector{Vector{Float64}}(undef, L)
 
 # Helper function to compute HSI
+# ... [Previous code remains the same]
+
+# Helper function to compute HSI
 function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shifts, Lsize, prey_species, predator_species, same_species)
     @inbounds for cell in indices
         row, col = cell.I
         birth_rate = death_rate = 0
 
-        for shift in neighbor_shifts
+        # Corrected loop using eachrow
+        for shift in eachrow(neighbor_shifts)
             neighbor_row = mod1(row + shift[1], Lsize)
             neighbor_col = mod1(col + shift[2], Lsize)
             neighbor_value = Lattice[neighbor_row, neighbor_col]
 
-            if neighbor_value == predator_species || neighbor_value == same_species
+            if neighbor_value == predator_species #|| neighbor_value == same_species
                 death_rate += 1
             elseif neighbor_value == 0
                 birth_rate += 1
@@ -43,6 +47,8 @@ function compute_HSI!(birth_rates, death_rates, Lattice, indices, neighbor_shift
         death_rates[row, col] = death_rate
     end
 end
+
+# ... [Rest of the code remains the same]
 
 # 결과를 저장할 구조체 정의
 if !@isdefined(SpeciesData)
@@ -66,13 +72,14 @@ function process_chunk(chunk_start, chunk_end)
     local_death_rates = zeros(Int, Lsize, Lsize)
     
     for i in chunk_start:chunk_end
-        fill!(local_birth_rates, 0)
-        fill!(local_death_rates, 0)
-
         Lattice = @view data_Lattice[i, :, :]
         Trace = @view data_Trace[i, :, :]
 
         for (species, prey, predator, same) in [(1, 2, 3, 1), (2, 3, 1, 2), (3, 1, 2, 3)]
+            # Reset the rates before processing each species
+            fill!(local_birth_rates, 0)
+            fill!(local_death_rates, 0)
+
             indices = findall(x -> x == species, Lattice)
             compute_HSI!(local_birth_rates, local_death_rates, Lattice, indices, neighbor_shifts, Lsize, prey, predator, same)
                 
@@ -173,43 +180,53 @@ C_data = process_species_data(C_MM_death, C_MM_birth, max_age)
 
 # 애니메이션 생성 부분 수정
 if !isempty(A_MM_death) && !isempty(B_MM_death) && !isempty(C_MM_death)
-    anim = @animate for idx in 1:100:L
+    # y축 최대값 계산
+    y_max_count = maximum([
+        maximum(maximum(species_data[1].death_counts)),
+        maximum(maximum(species_data[1].birth_counts)),
+        maximum(maximum(species_data[2].death_counts)),
+        maximum(maximum(species_data[2].birth_counts)),
+        maximum(maximum(species_data[3].death_counts)),
+        maximum(maximum(species_data[3].birth_counts))
+    ])
+
+    anim = @animate for idx in 1:2:L
         A = A_data[idx]
         B = B_data[idx]
         C = C_data[idx]
         NumS = data_NumS[idx, :]
 
-        p1 = scatter(1:length(A.MM_d), A.MM_d, label = "A death_rate", color = :red, markershape = :circle, ylims = (0, y_max_A), markersize = 3, legend = :topright)
-        scatter!(p1, 1:length(A.MM_b), A.MM_b, label = "A birth_rate", color = :pink, markershape = :square, markersize = 3)
+        p1 = scatter(1:length(A.MM_d), A.MM_d, label = "A death_rate", color = :salmon, markershape = :circle, ylims = (-0.5, 4.5), markersize = 4, legend = :topright, markerstrokewidth = 0)
+        scatter!(p1, 1:length(A.MM_b), A.MM_b, label = "A birth_rate", color = :skyblue, markershape = :utriangle, markersize = 4, markerstrokewidth = 0)
         
         p2 = scatter(1:length(species_data[1].death_counts[idx]), 
                      replace(species_data[1].death_counts[idx], 0 => NaN), 
-                     label = "A death_count", color = :red, markershape = :circle, markersize = 3, legend = :topright)
+                     label = "A death_count", color = :lightcoral, markershape = :circle, markersize = 4, legend = :topright, markerstrokewidth = 0)
         scatter!(p2, 1:length(species_data[1].birth_counts[idx]), 
                  replace(species_data[1].birth_counts[idx], 0 => NaN), 
-                 label = "A birth_count", color = :blue, markershape = :square, markersize = 3)
+                 label = "A birth_count", color = :lightskyblue, markershape = :utriangle, markersize = 4, markerstrokewidth = 0)
 
-        p3 = scatter(1:length(B.MM_d), B.MM_d, label = "B death_rate", color = :green, markershape = :circle, ylims = (0, y_max_B), markersize = 3, legend = :topright)
-        scatter!(p3, 1:length(B.MM_b), B.MM_b, label = "B birth_rate", color = :lightgreen, markershape = :square, markersize = 3)
+        p3 = scatter(1:length(B.MM_d), B.MM_d, label = "B death_rate", color = :olivedrab, markershape = :square, ylims = (-0.5, 4.5), markersize = 4, legend = :topright, markerstrokewidth = 0)
+        scatter!(p3, 1:length(B.MM_b), B.MM_b, label = "B birth_rate", color = :palegreen, markershape = :diamond, markersize = 4, markerstrokewidth = 0)
         
         p4 = scatter(1:length(species_data[2].death_counts[idx]), 
                      replace(species_data[2].death_counts[idx], 0 => NaN), 
-                     label = "B death_count", color = :red, markershape = :circle, markersize = 3, legend = :topright)
+                     label = "B death_count", color = :darkseagreen, markershape = :square, markersize = 4, legend = :topright, markerstrokewidth = 0)
         scatter!(p4, 1:length(species_data[2].birth_counts[idx]), 
                  replace(species_data[2].birth_counts[idx], 0 => NaN), 
-                 label = "B birth_count", color = :blue, markershape = :square, markersize = 3)
+                 label = "B birth_count", color = :lightgreen, markershape = :diamond, markersize = 4, markerstrokewidth = 0)
 
-        p5 = scatter(1:length(C.MM_d), C.MM_d, label = "C death_rate", color = :blue, markershape = :circle, ylims = (0, y_max_C), markersize = 3, legend = :topright)
-        scatter!(p5, 1:length(C.MM_b), C.MM_b, label = "C birth_rate", color = :lightblue, markershape = :square, markersize = 3)
+        p5 = scatter(1:length(C.MM_d), C.MM_d, label = "C death_rate", color = :sandybrown, markershape = :star5, ylims = (-0.5, 4.5), markersize = 5, legend = :topright, markerstrokewidth = 0)
+        scatter!(p5, 1:length(C.MM_b), C.MM_b, label = "C birth_rate", color = :khaki, markershape = :dtriangle, markersize = 4, markerstrokewidth = 0)
         
         p6 = scatter(1:length(species_data[3].death_counts[idx]), 
                      replace(species_data[3].death_counts[idx], 0 => NaN), 
-                     label = "C death_count", color = :red, markershape = :circle, markersize = 3, legend = :topright)
+                     label = "C death_count", color = :tan, markershape = :star5, markersize = 5, legend = :topright, markerstrokewidth = 0)
         scatter!(p6, 1:length(species_data[3].birth_counts[idx]), 
                  replace(species_data[3].birth_counts[idx], 0 => NaN), 
-                 label = "C birth_count", color = :blue, markershape = :square, markersize = 3)
+                 label = "C birth_count", color = :lemonchiffon, markershape = :dtriangle, markersize = 4, markerstrokewidth = 0)
 
-        p7 = scatter(1:length(NumS), NumS, label = "NumS", color = :purple, markershape = :circle, ylims = (0, y_max_NumS), markersize = 3, legend = :topright)
+        p7 = scatter(1:length(NumS), NumS, label = "NumS", color = :plum, markershape = :hexagon, ylims = (0, y_max_NumS), markersize = 4, legend = :topright, markerstrokewidth = 0)
 
         plot(p1, p2, p3, p4, p5, p6, p7, layout = (7, 1), size = (2000, 1200), title = ["A species" "A Age-class counts" "B species" "B Age-class counts" "C species" "C Age-class counts" "NumS"])
 
