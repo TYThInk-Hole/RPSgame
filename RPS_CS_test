@@ -1,6 +1,6 @@
 using Random, HDF5, Printf, Statistics, SparseArrays, StatsBase, Base.Threads
 
-function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
+function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn, lock)
     start_time = time()
     Random.seed!(rn)
 
@@ -34,8 +34,9 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     # dataset3 = "$intra1/Trace/$rn"
 
     # HDF5 파일 열기 및 데이터셋 확인/생성
-    h5open(file_dir, "cw") do f
-        # dataset1 처리
+    lock(lock) do
+        h5open(file_dir, "cw") do f
+            # dataset1 처리
         if haskey(f, dataset1)
             delete_object(f, dataset1)
         end
@@ -51,7 +52,8 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         # if haskey(f, dataset3)
         #     delete_object(f, dataset3)
         # end
-        # create_dataset(f, dataset3, Float64, ((1, Lsize, Lsize), (-1, Lsize, Lsize)); chunk=(1, Lsize, Lsize))
+            # create_dataset(f, dataset3, Float64, ((1, Lsize, Lsize), (-1, Lsize, Lsize)); chunk=(1, Lsize, Lsize))
+        end
     end
 
     generation = 0
@@ -220,46 +222,38 @@ function sub2ind(Lsize, row, col)
 end
 
 # Example usage:
-function get_parameters()
-    println("Enter parameters in the following order:")
-    println("Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end")
-    println("Example: 200 1.0 1.0 30 2.5 1.0 0.5 1 1.0 1 1000")
-    
-    while true
+function get_parameters_from_args()
+    args = ARGS
+    if length(args) != 11
+        println("Usage: julia my_julia_script.jl Lsize reproduction_rate selection_rate mobility intra1 intra2 intra3 ext para rn_start rn_end")
+        exit(1)
+    end
+    Lsize = parse(Int, args[1])
+    reproduction_rate = parse(Float64, args[2])
+    selection_rate = parse(Float64, args[3])
+    mobility = parse(Int, args[4])
+    intra1 = parse(Float64, args[5])
+    intra2 = parse(Float64, args[6])
+    intra3 = parse(Float64, args[7])
+    ext = parse(Int, args[8])
+    para = parse(Float64, args[9])
+    rn_start = parse(Int, args[10])
+    rn_end = parse(Int, args[11])
+    return Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end
+end
+
+function main()
+    Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end = get_parameters_from_args()
+
+    lock = ReentrantLock()
+    # Run the simulation for the range of rn values
+    Threads.@threads for rn in rn_start:rn_end
         try
-            input = readline()
-            params = parse.(Float64, split(input))
-            if length(params) != 11
-                throw(ArgumentError("Incorrect number of parameters"))
-            end
-            return (
-                Int(params[1]),  # Lsize
-                params[2],       # reproduction_rate
-                params[3],       # selection_rate
-                Int(params[4]),  # mobility
-                params[5],       # intra1
-                params[6],       # intra2
-                params[7],       # intra3
-                Int(params[8]),  # ext
-                params[9],       # para
-                Int(params[10]), # rn_start
-                Int(params[11])  # rn_end
-            )
+            RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn, lock)
         catch e
-            println("Invalid input. Please try again.")
-            println("Error: ", e)
+            println("Error in thread with rn=$rn: ", e)
         end
     end
 end
 
-# Get parameters
-Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end = get_parameters()
-
-# Main loop for simulations
-# for rn in rn_start:rn_end
-#     RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
-# end
-# Main loop parallelized using Threads.@threads
-Threads.@threads for rn in rn_start:rn_end
-    RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
-end
+main()
