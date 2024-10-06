@@ -11,9 +11,9 @@ Lsize=200
 reproduction_rate=2.0
 selection_rate=2.0
 mobility=30
-intra1=0.1
-intra2=0.1
-intra3=0.1
+intra1=0.8
+intra2=0.8
+intra3=0.8
 ext=2
 para=6.25
 
