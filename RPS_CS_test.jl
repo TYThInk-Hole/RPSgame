@@ -27,8 +27,8 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 file setup
-    file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra_$rn.h5"
-    # file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_$rn.h5"
+    # file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra_$rn.h5"
+    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_$rn.h5"
     dataset1 = "$intra1/Histogram/$rn"
     dataset2 = "$intra1/NumS/$rn"
     # dataset3 = "$intra1/Trace/$rn"
@@ -221,37 +221,32 @@ function sub2ind(Lsize, row, col)
 end
 
 # Example usage:
-function get_parameters_from_args()
-    args = ARGS
-    if length(args) != 11
-        println("Usage: julia my_julia_script.jl Lsize reproduction_rate selection_rate mobility intra1 intra2 intra3 ext para rn_start rn_end")
+function parse_command_line_args()
+    if length(ARGS) != 11
+        println("Error: Incorrect number of arguments")
+        println("Usage: julia ERPS_CS_test.jl Lsize reproduction_rate selection_rate mobility intra1 intra2 intra3 ext para rn_start rn_end")
         exit(1)
     end
-    Lsize = parse(Int, args[1])
-    reproduction_rate = parse(Float64, args[2])
-    selection_rate = parse(Float64, args[3])
-    mobility = parse(Int, args[4])
-    intra1 = parse(Float64, args[5])
-    intra2 = parse(Float64, args[6])
-    intra3 = parse(Float64, args[7])
-    ext = parse(Int, args[8])
-    para = parse(Float64, args[9])
-    rn_start = parse(Int, args[10])
-    rn_end = parse(Int, args[11])
-    return Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end
+
+    return (
+        parse(Int, ARGS[1]),    # Lsize
+        parse(Float64, ARGS[2]),  # reproduction_rate
+        parse(Float64, ARGS[3]),  # selection_rate
+        parse(Int, ARGS[4]),    # mobility
+        parse(Float64, ARGS[5]),  # intra1
+        parse(Float64, ARGS[6]),  # intra2
+        parse(Float64, ARGS[7]),  # intra3
+        parse(Int, ARGS[8]),   # ext
+        parse(Float64, ARGS[9]), # para
+        parse(Int, ARGS[10]),   # rn_start
+        parse(Int, ARGS[11])    # rn_end
+    )
 end
 
-function main()
-    Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end = get_parameters_from_args()
 
-    # Run the simulation for the range of rn values
-    Threads.@threads for rn in rn_start:rn_end
-        try
-            RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
-        catch e
-            println("Error in thread with rn=$rn: ", e)
-        end
-    end
+Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end = parse_command_line_args()
+
+# Run the simulation for the range of rn values
+Threads.@threads for rn in rn_start:rn_end
+    RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
 end
-
-main()
