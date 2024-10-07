@@ -26,16 +26,34 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     # Neighbor shifts (4 directions)
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
-    # HDF5 파일 설정
-    # file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
-    file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra.h5"
-    group_name = @sprintf("intra_%.1f_%.1f_%.1f", intra1, intra2, intra3)
-    dataset1 = "$group_name/Histogram/$rn"
-    dataset2 = "$group_name/NumS/$rn"
+    # HDF5 file setup
+    # file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra_$rn.h5"
+    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_$rn.h5"
+    dataset1 = "$intra1/Histogram/$rn"
+    dataset2 = "$intra1/NumS/$rn"
+    # dataset3 = "$intra1/Trace/$rn"
 
-    # 데이터를 메모리에 저장
-    histogram_data = zeros(Float64, 1, 50, 6)
-    nums_data = zeros(Float64, 1, 3)
+    # HDF5 파일 열기 및 데이터셋 확인/생성
+    h5open(file_dir, "cw") do f
+        # dataset1 처리
+        if haskey(f, dataset1)
+            delete_object(f, dataset1)
+        end
+        create_dataset(f, dataset1, Float64, ((1, 50, 6), (-1, 50, 6)); chunk=(1, 50, 6))
+
+        # dataset2 처리
+        if haskey(f, dataset2)
+            delete_object(f, dataset2)
+        end
+        create_dataset(f, dataset2, Float64, ((1, 3), (-1, 3)); chunk=(1, 3))
+
+        # dataset3 처리
+        # if haskey(f, dataset3)
+        #     delete_object(f, dataset3)
+        # end
+        # create_dataset(f, dataset3, Float64, ((1, Lsize, Lsize), (-1, Lsize, Lsize)); chunk=(1, Lsize, Lsize))
+    end
+    
 
     generation = 0
     Flag = true
@@ -140,17 +158,24 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         if bin_max > 0
             bin_edges = range(0, bin_max, length=51)  # bin 중앙값
 
-            a_values, h_a = compute_histogram(spe_a, bin_edges)
-            b_values, h_b = compute_histogram(spe_b, bin_edges)
-            c_values, h_c = compute_histogram(spe_c, bin_edges)
+            a_values, h_a = histogram_data(spe_a, bin_edges)
+            b_values, h_b = histogram_data(spe_b, bin_edges)
+            c_values, h_c = histogram_data(spe_c, bin_edges)
 
             # Save histogram data (extend dataset1)
-            histogram_data[1, :, 1] = a_values
-            histogram_data[1, :, 2] = b_values
-            histogram_data[1, :, 3] = c_values
-            histogram_data[1, :, 4] = h_a
-            histogram_data[1, :, 5] = h_b
-            histogram_data[1, :, 6] = h_c
+            h5open(file_dir, "r+") do f
+                dset1 = f[dataset1]
+                curr_size = size(dset1, 1)
+                new_size = curr_size + 1
+                HDF5.set_extent_dims(dset1, (new_size, 50, 6))
+
+                dset1[new_size, :, 1] = a_values
+                dset1[new_size, :, 2] = b_values
+                dset1[new_size, :, 3] = c_values
+                dset1[new_size, :, 4] = h_a
+                dset1[new_size, :, 5] = h_b
+                dset1[new_size, :, 6] = h_c
+            end
         end
 
         # Count species numbers
@@ -160,7 +185,13 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         nExt = sum([nA, nB, nC] .== 0)
 
         # Save NumS data
-        nums_data[1, :] = [nA, nB, nC]
+        h5open(file_dir, "r+") do f
+            dset2 = f[dataset2]
+            curr_size = size(dset2, 1)
+            new_size = curr_size + 1
+            HDF5.set_extent_dims(dset2, (new_size, 3))
+            dset2[new_size, :] = [nA, nB, nC]
+        end
 
         @printf("rn=%d, species=%d, %d, %d, nExt=%d, generation=%d\n", rn, nA, nB, nC, nExt, generation)
 
@@ -170,15 +201,11 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         end
     end
 
-    # 시뮬레이션이 끝난 후 데이터를 HDF5 파일에 저장
-    lock = ReentrantLock()
-    lock_and_write(file_dir, dataset1, histogram_data, dataset2, nums_data, lock)
-
     println("Elapsed time: ", time() - start_time, " seconds")
 end
 
 # Helper function to compute histograms for species (without normalization)
-function compute_histogram(species_data, bin_edges; normalize=false)
+function histogram_data(species_data, bin_edges; normalize=false)
     h = fit(Histogram, species_data, bin_edges)
     counts = h.weights
     if normalize
@@ -193,34 +220,11 @@ function sub2ind(Lsize, row, col)
     return (col .- 1) .* Lsize .+ row
 end
 
-function lock_and_write(file_dir, dataset1, histogram_data, dataset2, nums_data, lock)
-    lock() do
-        h5open(file_dir, "cw") do f
-            if !haskey(f, split(dataset1, "/")[1])
-                create_group(f, split(dataset1, "/")[1])
-            end
-            g = f[split(dataset1, "/")[1]]
-
-            # dataset1 처리
-            if haskey(g, join(split(dataset1, "/")[2:end], "/"))
-                delete_object(g, join(split(dataset1, "/")[2:end], "/"))
-            end
-            create_dataset(g, join(split(dataset1, "/")[2:end], "/"), histogram_data)
-
-            # dataset2 처리
-            if haskey(g, join(split(dataset2, "/")[2:end], "/"))
-                delete_object(g, join(split(dataset2, "/")[2:end], "/"))
-            end
-            create_dataset(g, join(split(dataset2, "/")[2:end], "/"), nums_data)
-        end
-    end
-end
-
 # Example usage:
 function parse_command_line_args()
-    if length(ARGS) != 14
-        println("오류: 인수 개수가 올바르지 않습니다")
-        println("사용법: julia ERPS_CS_test.jl Lsize reproduction_rate selection_rate mobility intra1_start intra1_end intra2_start intra2_end intra3_start intra3_end ext para start_rn end_rn")
+    if length(ARGS) != 11
+        println("Error: Incorrect number of arguments")
+        println("Usage: julia ERPS_CS_test.jl Lsize reproduction_rate selection_rate mobility intra1 intra2 intra3 ext para rn_start rn_end")
         exit(1)
     end
 
@@ -229,36 +233,20 @@ function parse_command_line_args()
         parse(Float64, ARGS[2]),  # reproduction_rate
         parse(Float64, ARGS[3]),  # selection_rate
         parse(Int, ARGS[4]),    # mobility
-        parse(Float64, ARGS[5]),  # intra1_start
-        parse(Float64, ARGS[6]),  # intra1_end
-        parse(Float64, ARGS[7]),  # intra2_start
-        parse(Float64, ARGS[8]),  # intra2_end
-        parse(Float64, ARGS[9]),  # intra3_start
-        parse(Float64, ARGS[10]), # intra3_end
-        parse(Int, ARGS[11]),   # ext
-        parse(Float64, ARGS[12]), # para
-        parse(Int, ARGS[13]),   # start_rn
-        parse(Int, ARGS[14])    # end_rn
+        parse(Float64, ARGS[5]),  # intra1
+        parse(Float64, ARGS[6]),  # intra2
+        parse(Float64, ARGS[7]),  # intra3
+        parse(Int, ARGS[8]),   # ext
+        parse(Float64, ARGS[9]), # para
+        parse(Int, ARGS[10]),   # rn_start
+        parse(Int, ARGS[11])    # rn_end
     )
 end
 
-function run_simulation(Lsize, reproduction_rate, selection_rate, mobility, intra1_start, intra1_end, intra2_start, intra2_end, intra3_start, intra3_end, ext, para, rn)
-    for intra1 in intra1_start:0.1:intra1_end
-        for intra2 in intra2_start:0.1:intra2_end
-            for intra3 in intra3_start:0.1:intra3_end
-                RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
-            end
-        end
-    end
+
+Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end = parse_command_line_args()
+
+# Run the simulation for the range of rn values
+Threads.@threads for rn in rn_start:rn_end
+    RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
 end
-
-# 메인 스크립트 부분
-Lsize, reproduction_rate, selection_rate, mobility, intra1_start, intra1_end, intra2_start, intra2_end, intra3_start, intra3_end, ext, para, start_rn, end_rn = parse_command_line_args()
-
-lock = ReentrantLock()
-
-Threads.@threads for rn in start_rn:end_rn
-    run_simulation(Lsize, reproduction_rate, selection_rate, mobility, intra1_start, intra1_end, intra2_start, intra2_end, intra3_start, intra3_end, ext, para, rn)
-end
-
-println("모든 시뮬레이션이 완료되었습니다!")
