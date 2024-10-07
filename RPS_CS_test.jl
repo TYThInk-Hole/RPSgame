@@ -237,7 +237,8 @@ end
 function main()
     Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end = parse_command_line_args()
 
-    file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra.h5"
+    # file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra.h5"
+    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
     group_name = @sprintf("intra_%.3f_%.3f_%.3f", intra1, intra2, intra3)
 
     h5open(file_dir, "cw") do f
