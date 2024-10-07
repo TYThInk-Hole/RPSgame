@@ -27,7 +27,7 @@ do
     end=$((start + $chunk_size - 1))
 
     if ((end >= end_rn)); then
-        end=$((end_rn - 1))
+        end=$end_rn
     fi
 
     # rn 값의 청크로 Julia 스크립트 호출
