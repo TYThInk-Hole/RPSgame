@@ -27,7 +27,8 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 파일 설정
-    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
+    # file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
+    file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra.h5"
     group_name = @sprintf("intra_%.1f_%.1f_%.1f", intra1, intra2, intra3)
     dataset1 = "$group_name/Histogram/$rn"
     dataset2 = "$group_name/NumS/$rn"
