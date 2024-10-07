@@ -1,21 +1,25 @@
 #!/bin/bash
 
-# rn 범위와 청크 크기 설정
-start_rn=1
-end_rn=1000
-chunk_size=50
+# 사용자로부터 모든 값을 한 번에 입력 받기
+echo "start_rn end_rn chunk_size intra1 intra2 intra3 값을 순서대로 입력하세요 (공백으로 구분):"
+read start_rn end_rn chunk_size intra1 intra2 intra3
 
 # Julia 함수를 위한 다른 매개변수 설정
-# 이 매개변수들은 명령줄을 통해 전달되거나 여기에 하드코딩될 수 있습니다.
 Lsize=200
 reproduction_rate=2.0
 selection_rate=2.0
 mobility=30
-intra1=0.8
-intra2=0.8
-intra3=0.8
 ext=2
 para=6.25
+
+# 입력값 확인
+echo "입력된 값:"
+echo "start_rn: $start_rn"
+echo "end_rn: $end_rn"
+echo "chunk_size: $chunk_size"
+echo "intra1: $intra1"
+echo "intra2: $intra2"
+echo "intra3: $intra3"
 
 # rn 범위를 청크로 나누어 반복
 for ((start=$start_rn; start<$end_rn; start+=$chunk_size))
