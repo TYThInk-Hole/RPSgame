@@ -29,26 +29,20 @@ function ERPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, 
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 file setup
-    # file_dir = "/Volumes/yoonD/RPS/intra/ERPS_intra_$rn.h5"
-    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/ERPS_intra_$rn.h5"
-    dataset1 = "$intra3/Histogram/$rn"
-    dataset2 = "$intra3/NumS/$rn"
-    # dataset3 = "$intra1/Trace/$rn"
+    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/ERPS_intra.h5"
+    group_name = @sprintf("intra_%.3f_%.3f_%.3f_%.3f_%.3f", intra1, intra2, intra3, intra4, intra5)
+    dataset1 = "$group_name/Histogram/$rn"
+    dataset2 = "$group_name/NumS/$rn"
 
-    # HDF5 파일 열기 및 데이터셋 확인/생성
-    h5open(file_dir, "cw") do f
-        # dataset1 처리
-        if haskey(f, dataset1)
-            delete_object(f, dataset1)
+    # 데이터셋 생성 (각 스레드별로 수행)
+    h5open(file_dir, "r+") do f
+        g = f[group_name]
+        if !haskey(g["Histogram"], "$rn")
+            create_dataset(g["Histogram"], "$rn", Float64, ((1, 50, 6), (-1, 50, 6)), chunk=(1, 50, 6))
         end
-        create_dataset(f, dataset1, Float64, ((1, 50, 6), (-1, 50, 6)); chunk=(1, 50, 6))
-
-        # dataset2 처리
-        if haskey(f, dataset2)
-            delete_object(f, dataset2)
+        if !haskey(g["NumS"], "$rn")
+            create_dataset(g["NumS"], "$rn", Float64, ((1, 5), (-1, 5)), chunk=(1, 5))
         end
-        create_dataset(f, dataset2, Float64, ((1, 5), (-1, 5)); chunk=(1, 5))
-
     end
 
     generation = 0
@@ -264,9 +258,31 @@ function parse_command_line_args()
     )
 end
 
-# 메인 실행 부분
-Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn_start, rn_end = parse_command_line_args()
+# 메인 함수에서 파일 및 그룹 구조 생성
+function main()
+    Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn_start, rn_end = parse_command_line_args()
 
-Threads.@threads for rn in rn_start:rn_end
-    ERPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn)
+    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/ERPS_intra.h5"
+    group_name = @sprintf("intra_%.3f_%.3f_%.3f_%.3f_%.3f", intra1, intra2, intra3, intra4, intra5)
+
+    h5open(file_dir, "cw") do f
+        if !haskey(f, group_name)
+            create_group(f, group_name)
+        end
+        g = f[group_name]
+        if !haskey(g, "Histogram")
+            create_group(g, "Histogram")
+        end
+        if !haskey(g, "NumS")
+            create_group(g, "NumS")
+        end
+    end
+
+    # 스레드 실행
+    Threads.@threads for rn in rn_start:rn_end
+        ERPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn)
+    end
 end
+
+# 메인 함수 실행
+main()
