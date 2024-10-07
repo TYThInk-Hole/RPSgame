@@ -194,7 +194,7 @@ function sub2ind(Lsize, row, col)
 end
 
 function lock_and_write(file_dir, dataset1, histogram_data, dataset2, nums_data, lock)
-    lock(lock) do
+    lock() do
         h5open(file_dir, "cw") do f
             if !haskey(f, split(dataset1, "/")[1])
                 create_group(f, split(dataset1, "/")[1])
