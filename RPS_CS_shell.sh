@@ -40,5 +40,4 @@ do
         exit 1
     fi
 done
-
 echo "모든 Julia 작업이 성공적으로 완료되었습니다!"
