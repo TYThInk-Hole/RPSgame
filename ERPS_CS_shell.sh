@@ -10,7 +10,7 @@ reproduction_rate=2.0
 selection_rate=2.0
 mobility=30
 ext=3
-para=6.25
+para=6.00
 
 # 입력값 확인
 echo "입력된 값:"
