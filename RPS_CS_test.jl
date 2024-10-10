@@ -212,9 +212,9 @@ end
 
 # Example usage:
 function parse_command_line_args()
-    if length(ARGS) != 11
-        println("Error: Incorrect number of arguments")
-        println("Usage: julia ERPS_CS_test.jl Lsize reproduction_rate selection_rate mobility intra1 intra2 intra3 ext para rn_start rn_end")
+    if length(ARGS) != 14
+        println("오류: 인수 개수가 잘못되었습니다")
+        println("사용법: julia ERPS_CS_test.jl Lsize reproduction_rate selection_rate mobility intra1_start intra1_end intra1_step intra2 intra3 ext para rn_start rn_end")
         exit(1)
     end
 
@@ -223,40 +223,43 @@ function parse_command_line_args()
         parse(Float64, ARGS[2]),  # reproduction_rate
         parse(Float64, ARGS[3]),  # selection_rate
         parse(Int, ARGS[4]),    # mobility
-        parse(Float64, ARGS[5]),  # intra1
-        parse(Float64, ARGS[6]),  # intra2
-        parse(Float64, ARGS[7]),  # intra3
-        parse(Int, ARGS[8]),   # ext
-        parse(Float64, ARGS[9]), # para
-        parse(Int, ARGS[10]),   # rn_start
-        parse(Int, ARGS[11])    # rn_end
+        parse(Float64, ARGS[5]),  # intra1_start
+        parse(Float64, ARGS[6]),  # intra1_end
+        parse(Float64, ARGS[7]),  # intra1_step
+        parse(Float64, ARGS[8]),  # intra2
+        parse(Float64, ARGS[9]),  # intra3
+        parse(Int, ARGS[10]),   # ext
+        parse(Float64, ARGS[11]), # para
+        parse(Int, ARGS[12]),   # rn_start
+        parse(Int, ARGS[13])    # rn_end
     )
 end
 
 # 메인 함수에서 파일 및 그룹 구조 생성
 function main()
-    Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn_start, rn_end = parse_command_line_args()
+    Lsize, reproduction_rate, selection_rate, mobility, intra1_start, intra1_end, intra1_step, intra2, intra3, ext, para, rn_start, rn_end = parse_command_line_args()
 
-    # file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra.h5"
     file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
-    group_name = @sprintf("intra_%.3f_%.3f_%.3f", intra1, intra2, intra3)
 
-    h5open(file_dir, "cw") do f
-        if !haskey(f, group_name)
-            create_group(f, group_name)
-        end
-        g = f[group_name]
-        if !haskey(g, "Histogram")
-            create_group(g, "Histogram")
-        end
-        if !haskey(g, "NumS")
-            create_group(g, "NumS")
-        end
-    end
+    for intra1 in intra1_start:intra1_step:intra1_end
+        group_name = @sprintf("intra_%.3f_%.3f_%.3f", intra1, intra2, intra3)
 
-    # 스레드 실행
-    Threads.@threads for rn in rn_start:rn_end
-        RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
+        h5open(file_dir, "cw") do f
+            if !haskey(f, group_name)
+                create_group(f, group_name)
+            end
+            g = f[group_name]
+            if !haskey(g, "Histogram")
+                create_group(g, "Histogram")
+            end
+            if !haskey(g, "NumS")
+                create_group(g, "NumS")
+            end
+        end
+
+        Threads.@threads for rn in rn_start:rn_end
+            RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
+        end
     end
 end
 
