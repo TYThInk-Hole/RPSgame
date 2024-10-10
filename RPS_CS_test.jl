@@ -210,11 +210,11 @@ function sub2ind(Lsize, row, col)
     return (col .- 1) .* Lsize .+ row
 end
 
-# Example usage:
+# 명령줄 인수 파싱 함수
 function parse_command_line_args()
-    if length(ARGS) != 14
+    if length(ARGS) != 13
         println("오류: 인수 개수가 잘못되었습니다")
-        println("사용법: julia ERPS_CS_test.jl Lsize reproduction_rate selection_rate mobility intra1_start intra1_end intra1_step intra2 intra3 ext para rn_start rn_end")
+        println("사용법: julia RPS_CS_test.jl Lsize reproduction_rate selection_rate mobility intra1_start intra1_end intra1_step intra2 intra3 ext para rn_start rn_end")
         exit(1)
     end
 
@@ -235,7 +235,7 @@ function parse_command_line_args()
     )
 end
 
-# 메인 함수에서 파일 및 그룹 구조 생성
+# 메인 함수
 function main()
     Lsize, reproduction_rate, selection_rate, mobility, intra1_start, intra1_end, intra1_step, intra2, intra3, ext, para, rn_start, rn_end = parse_command_line_args()
 
