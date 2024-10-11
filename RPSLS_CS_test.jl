@@ -245,9 +245,9 @@ end
 
 # 명령줄 인수를 파싱하는 함수로 get_parameters() 함수를 대체
 function parse_command_line_args()
-    if length(ARGS) != 13
+    if length(ARGS) != 15
         println("오류: 인수 개수가 잘못되었습니다")
-        println("사용법: julia RPSLS_CS_test.jl Lsize reproduction_rate selection_rate mobility intra1 intra2 intra3 intra4 intra5 ext para rn_start rn_end")
+        println("사용법: julia RPSLS_CS_test.jl Lsize reproduction_rate selection_rate mobility intra1 intra2 intra3 intra4 intra5_start intra5_end intra5_step ext para rn_start rn_end")
         exit(1)
     end
 
@@ -260,17 +260,19 @@ function parse_command_line_args()
         parse(Float64, ARGS[6]),  # intra2
         parse(Float64, ARGS[7]),  # intra3
         parse(Float64, ARGS[8]),  # intra4
-        parse(Float64, ARGS[9]),  # intra5
-        parse(Int, ARGS[10]),   # ext
-        parse(Float64, ARGS[11]), # para
-        parse(Int, ARGS[12]),   # rn_start
-        parse(Int, ARGS[13])    # rn_end
+        parse(Float64, ARGS[9]),  # intra5_start
+        parse(Float64, ARGS[10]),  # intra5_end
+        parse(Float64, ARGS[11]),  # intra5_step
+        parse(Int, ARGS[12]),   # ext
+        parse(Float64, ARGS[13]), # para
+        parse(Int, ARGS[14]),   # rn_start
+        parse(Int, ARGS[15])    # rn_end
     )
 end
 
 # 메인 함수에서 파일 및 그룹 구조 생성
 function main()
-    Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn_start, rn_end = parse_command_line_args()
+    Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5_start, intra5_end, intra5_step, ext, para, rn_start, rn_end = parse_command_line_args()
 
     file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPSLS_intra.h5"
     group_name = @sprintf("intra_%.3f_%.3f_%.3f_%.3f_%.3f", intra1, intra2, intra3, intra4, intra5)
