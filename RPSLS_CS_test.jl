@@ -275,26 +275,29 @@ function main()
     Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5_start, intra5_end, intra5_step, ext, para, rn_start, rn_end = parse_command_line_args()
 
     file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPSLS_intra.h5"
-    group_name = @sprintf("intra_%.3f_%.3f_%.3f_%.3f_%.3f", intra1, intra2, intra3, intra4, intra5)
+    for intra5 in intra5_start:intra5_step:intra5_end
+        group_name = @sprintf("intra_%.3f_%.3f_%.3f_%.3f_%.3f", intra1, intra2, intra3, intra4, intra5)
 
-    h5open(file_dir, "cw") do f
-        if !haskey(f, group_name)
-            create_group(f, group_name)
+        h5open(file_dir, "cw") do f
+            if !haskey(f, group_name)
+                create_group(f, group_name)
+            end
+            g = f[group_name]
+            if !haskey(g, "Histogram")
+                create_group(g, "Histogram")
+            end
+            if !haskey(g, "NumS")
+                create_group(g, "NumS")
+            end
         end
-        g = f[group_name]
-        if !haskey(g, "Histogram")
-            create_group(g, "Histogram")
-        end
-        if !haskey(g, "NumS")
-            create_group(g, "NumS")
-        end
-    end
 
-    # 스레드 실행
-    Threads.@threads for rn in rn_start:rn_end
-        RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn)
+        # 스레드 실행
+        Threads.@threads for rn in rn_start:rn_end
+            RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5, ext, para, rn)
+        end
     end
 end
+
 
 # 메인 함수 실행
 main()
