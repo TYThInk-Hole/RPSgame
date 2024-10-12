@@ -9,7 +9,7 @@ Lsize=200
 reproduction_rate=2.0
 selection_rate=2.0
 mobility=30
-ext=1
+ext=2
 para=6.25
 
 # 입력값 확인
