@@ -29,7 +29,8 @@ function RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1,
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 file setup
-    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPSLS_intra_$rn.h5"
+    # file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPSLS_intra_$rn.h5"
+    file_dir = "/Volumes/yoonD/RPS/intra/RPSLS_intra_$rn.h5"
     dataset1 = "$intra5/Histogram/$rn"
     dataset2 = "$intra5/NumS/$rn"
 
