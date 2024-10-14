@@ -1,15 +1,14 @@
 #!/bin/bash
 
 # 사용자로부터 모든 값을 한 번에 입력 받기
-echo "n_threads start_rn end_rn chunk_size intra1_start intra1_end intra1_step intra2 intra3 값을 순서대로 입력하세요 (공백으로 구분):"
-read n_threads start_rn end_rn chunk_size intra1_start intra1_end intra1_step intra2 intra3
+echo "n_threads start_rn end_rn chunk_size intra1_start intra1_end intra1_step intra2 intra3 ext 값을 순서대로 입력하세요 (공백으로 구분):"
+read n_threads start_rn end_rn chunk_size intra1_start intra1_end intra1_step intra2 intra3 ext
 
 # Julia 함수를 위한 다른 매개변수 설정
 Lsize=200
 reproduction_rate=2.0
 selection_rate=2.0
 mobility=30
-ext=1
 para=6.25
 
 # 입력값 확인
@@ -23,6 +22,7 @@ echo "intra1_step: $intra1_step"
 echo "intra2: $intra2"
 echo "intra3: $intra3"
 echo "n_threads: $n_threads"
+echo "ext: $ext"
 
 # rn 범위를 청크로 나누어 반복
 for ((start=$start_rn; start<$end_rn; start+=$chunk_size))
