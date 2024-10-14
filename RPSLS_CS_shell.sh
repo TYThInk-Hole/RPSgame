@@ -9,7 +9,6 @@ Lsize=200
 reproduction_rate=2.0
 selection_rate=2.0
 mobility=30
-ext=4
 para=6.25
 
 # 입력값 확인
@@ -25,7 +24,7 @@ echo "intra5_start: $intra5_start"
 echo "intra5_end: $intra5_end"
 echo "intra5_step: $intra5_step"
 echo "n_threads: $n_threads"
-
+echo "ext: $ext"
 # rn 범위를 청크로 나누어 반복
 for ((start=$start_rn; start<$end_rn; start+=$chunk_size))
 do
