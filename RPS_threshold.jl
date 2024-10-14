@@ -35,7 +35,7 @@ function compute_mmat()
                 intra2_str = @sprintf("%.3f", intra2)
                 intra3_str = @sprintf("%.3f", intra3)
                 # File paths and dataset names
-                h5_filename = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_test.h5"
+                h5_filename = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
                 histogram_path = "/intra_$(intra1_str)_$(intra2_str)_$(intra3_str)/Histogram/$(rn)"
                 nums_path = "/intra_$(intra1_str)_$(intra2_str)_$(intra3_str)/NumS/$(rn)"
 
@@ -140,7 +140,7 @@ function compute_S_probability()
                 intra1_str = @sprintf("%.3f", intra1)
                 intra2_str = @sprintf("%.3f", intra2)
                 intra3_str = @sprintf("%.3f", intra3)
-                h5_filename = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_test.h5"
+                h5_filename = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
                 histogram_path = "/intra_$(intra1_str)_$(intra2_str)_$(intra3_str)/Histogram/$(rn)"
                 nums_path = "/intra_$(intra1_str)_$(intra2_str)_$(intra3_str)/NumS/$(rn)"
 
@@ -237,7 +237,7 @@ function plot_S_probability()
         intra2_str = @sprintf("%.3f", intra2)
         intra3_str = @sprintf("%.3f", intra3)
         # h5_filename = "/Volumes/yoondata/RPS/intra/RPS_intra.h5"  # Fixed typo in path
-        h5_filename = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra_test.h5"
+        h5_filename = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
         dataset_path = "/intra_$(intra1_str)_$(intra2_str)_$(intra3_str)/P"
         S_probability = h5read(h5_filename, dataset_path)
         S_P = zeros(length(j_values), 3)
