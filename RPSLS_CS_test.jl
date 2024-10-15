@@ -219,7 +219,7 @@ function RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1,
         @printf("rn=%d, species=%d, %d, %d, %d, %d, nExt=%d, generation=%d\n", rn, nA, nB, nC, nD, nE, nExt, generation)
 
         # Stop if extinction or generation limit reached
-        if nExt == ext || generation == 25000
+        if nExt == ext
             Flag = false
         end
     end
