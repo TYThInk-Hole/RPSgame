@@ -1,5 +1,17 @@
 using Random, HDF5, Printf, Statistics, SparseArrays, StatsBase, Base.Threads
 
+# 전역 변수로 락 선언
+const file_lock = ReentrantLock()
+const dataset_locks = Dict{String, ReentrantLock}()
+
+function get_or_create_lock(dataset_name)
+    global dataset_locks
+    if !haskey(dataset_locks, dataset_name)
+        dataset_locks[dataset_name] = ReentrantLock()
+    end
+    return dataset_locks[dataset_name]
+end
+
 function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
     start_time = time()
     Random.seed!(rn)
@@ -34,13 +46,15 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     dataset2 = "$group_name/NumS/$rn"
 
     # 데이터셋 생성 (각 스레드별로 수행)
-    h5open(file_dir, "r+") do f
-        g = f[group_name]
-        if !haskey(g["Histogram"], "$rn")
-            create_dataset(g["Histogram"], "$rn", Float64, ((1, 50, 6), (-1, 50, 6)), chunk=(1, 50, 6))
-        end
-        if !haskey(g["NumS"], "$rn")
-            create_dataset(g["NumS"], "$rn", Float64, ((1, 3), (-1, 3)), chunk=(1, 3))
+    lock(file_lock) do
+        h5open(file_dir, "r+") do f
+            g = f[group_name]
+            if !haskey(g["Histogram"], "$rn")
+                create_dataset(g["Histogram"], "$rn", Float64, ((1, 50, 6), (-1, 50, 6)), chunk=(1, 50, 6))
+            end
+            if !haskey(g["NumS"], "$rn")
+                create_dataset(g["NumS"], "$rn", Float64, ((1, 3), (-1, 3)), chunk=(1, 3))
+            end
         end
     end
     
@@ -153,18 +167,20 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
             c_values, h_c = histogram_data(spe_c, bin_edges)
 
             # Save histogram data (extend dataset1)
-            h5open(file_dir, "r+") do f
-                dset1 = f[dataset1]
-                curr_size = size(dset1, 1)
-                new_size = curr_size + 1
-                HDF5.set_extent_dims(dset1, (new_size, 50, 6))
+            lock(get_or_create_lock(dataset1)) do
+                h5open(file_dir, "r+") do f
+                    dset1 = f[dataset1]
+                    curr_size = size(dset1, 1)
+                    new_size = curr_size + 1
+                    HDF5.set_extent_dims(dset1, (new_size, 50, 6))
 
-                dset1[new_size, :, 1] = a_values
-                dset1[new_size, :, 2] = b_values
-                dset1[new_size, :, 3] = c_values
-                dset1[new_size, :, 4] = h_a
-                dset1[new_size, :, 5] = h_b
-                dset1[new_size, :, 6] = h_c
+                    dset1[new_size, :, 1] = a_values
+                    dset1[new_size, :, 2] = b_values
+                    dset1[new_size, :, 3] = c_values
+                    dset1[new_size, :, 4] = h_a
+                    dset1[new_size, :, 5] = h_b
+                    dset1[new_size, :, 6] = h_c
+                end
             end
         end
 
@@ -175,12 +191,14 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         nExt = sum([nA, nB, nC] .== 0)
 
         # Save NumS data
-        h5open(file_dir, "r+") do f
-            dset2 = f[dataset2]
-            curr_size = size(dset2, 1)
-            new_size = curr_size + 1
-            HDF5.set_extent_dims(dset2, (new_size, 3))
-            dset2[new_size, :] = [nA, nB, nC]
+        lock(get_or_create_lock(dataset2)) do
+            h5open(file_dir, "r+") do f
+                dset2 = f[dataset2]
+                curr_size = size(dset2, 1)
+                new_size = curr_size + 1
+                HDF5.set_extent_dims(dset2, (new_size, 3))
+                dset2[new_size, :] = [nA, nB, nC]
+            end
         end
 
         @printf("rn=%d, species=%d, %d, %d, nExt=%d, generation=%d\n", rn, nA, nB, nC, nExt, generation)
@@ -244,21 +262,28 @@ function main()
     for intra1 in intra1_start:intra1_step:intra1_end
         group_name = @sprintf("intra_%.3f_%.3f_%.3f", intra1, intra2, intra3)
 
-        h5open(file_dir, "cw") do f
-            if !haskey(f, group_name)
-                create_group(f, group_name)
-            end
-            g = f[group_name]
-            if !haskey(g, "Histogram")
-                create_group(g, "Histogram")
-            end
-            if !haskey(g, "NumS")
-                create_group(g, "NumS")
+        lock(file_lock) do
+            h5open(file_dir, "cw") do f
+                if !haskey(f, group_name)
+                    create_group(f, group_name)
+                end
+                g = f[group_name]
+                if !haskey(g, "Histogram")
+                    create_group(g, "Histogram")
+                end
+                if !haskey(g, "NumS")
+                    create_group(g, "NumS")
+                end
             end
         end
 
         Threads.@threads for rn in rn_start:rn_end
-            RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
+            try
+                RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, ext, para, rn)
+            catch e
+                println("Error in thread for rn=$rn: ", e)
+                println(stacktrace(e))
+            end
         end
     end
 end
