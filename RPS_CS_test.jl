@@ -1,4 +1,4 @@
-using Random, HDF5, Printf, Statistics, SparseArrays, StatsBase, Base.Threads, Locks
+using Random, HDF5, Printf, Statistics, SparseArrays, StatsBase, Base.Threads
 
 # 전역 변수로 락 선언
 const file_lock = ReentrantLock()
