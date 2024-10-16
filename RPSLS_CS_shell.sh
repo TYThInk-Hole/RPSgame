@@ -4,6 +4,7 @@
 echo "n_threads start_rn end_rn chunk_size intra1 intra2 intra3 intra4 intra5_start intra5_end intra5_step ext para 값을 순서대로 입력하세요 (공백으로 구분):"
 read n_threads start_rn end_rn chunk_size intra1 intra2 intra3 intra4 intra5_start intra5_end intra5_step ext para
 
+echo "$n_threads $start_rn $end_rn $chunk_size $intra1 $intra2 $intra3 $intra4 $intra5_start $intra5_end $intra5_step $ext $para" >> RPSLS_CS_input_log.txt
 # Julia 함수를 위한 다른 매개변수 설정
 Lsize=200
 reproduction_rate=2.0
