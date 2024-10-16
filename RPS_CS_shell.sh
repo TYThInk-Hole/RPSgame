@@ -6,7 +6,7 @@ read n_threads start_rn end_rn chunk_size intra1_start intra1_end intra1_step in
 
 # Julia 함수를 위한 다른 매개변수 설정
 Lsize=200
-reproduction_rate=2.0
+reproduction_rate=0.5
 selection_rate=2.0
 mobility=30
 para=6.25
