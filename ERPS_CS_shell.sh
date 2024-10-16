@@ -4,6 +4,10 @@
 echo "n_threads start_rn end_rn chunk_size intra1 intra2 intra3_start intra3_end intra3_step intra4 intra5 ext para 값을 순서대로 입력하세요 (공백으로 구분):"
 read n_threads start_rn end_rn chunk_size intra1 intra2 intra3_start intra3_end intra3_step intra4 intra5 ext para
 
+if [ ! -f RPSLS_CS_input_log.txt ]; then
+    touch ERPS_CS_input_log.txt
+fi
+
 echo "$n_threads $start_rn $end_rn $chunk_size $intra1 $intra2 $intra3_start $intra3_end $intra3_step $intra4 $intra5 $ext $para" >> ERPS_CS_input_log.txt
 # Julia 함수를 위한 다른 매개변수 설정
 Lsize=200
