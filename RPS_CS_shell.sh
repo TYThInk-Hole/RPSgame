@@ -18,6 +18,7 @@ reproduction_rate=0.5
 selection_rate=1.0
 mobility=30
 para=6.25
+intra3=$(echo "$intra1 * 0.01" | bc)
 
 # 입력값 확인
 echo "입력된 값:"
@@ -28,7 +29,7 @@ echo "intra1_start: $intra1_start"
 echo "intra1_end: $intra1_end"
 echo "intra1_step: $intra1_step"
 echo "intra2: $intra2"
-echo "intra3: $intra3"
+# echo "intra3: $intra3"
 echo "n_threads: $n_threads"
 echo "ext: $ext"
 
