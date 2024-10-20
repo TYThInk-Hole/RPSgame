@@ -207,31 +207,31 @@ function RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1,
         nE = count(==(5), Lattice)
         nExt = sum([nA, nB, nC, nD, nE] .== 0)
 
-        if nA < 10
+        if nA < 50
             idx = findfirst(==(1), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
             end
         end
-        if nB < 10
+        if nB < 50
             idx = findfirst(==(2), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
             end
         end
-        if nC < 10
+        if nC < 50
             idx = findfirst(==(3), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
             end
         end
-        if nD < 10
+        if nD < 50
             idx = findfirst(==(4), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
             end
         end 
-        if nE < 10
+        if nE < 50
             idx = findfirst(==(5), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
