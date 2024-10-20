@@ -182,15 +182,24 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         nB = count(==(2), Lattice)
         nC = count(==(3), Lattice)
 
-        # 새로운 코드: 종의 수가 10 미만이면 1씩 감소
-        if 0 < nA < 10
-            nA -= 1
+        # 새로운 코드: 종의 수가 10 미만이면 Lattice에서 해당 종의 첫 번째 요소를 0으로 설정
+        if nA < 10
+            idx = findfirst(==(1), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
         end
-        if 0 < nB < 10
-            nB -= 1
+        if nB < 10
+            idx = findfirst(==(2), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
         end
-        if 0 < nC < 10
-            nC -= 1
+        if nC < 10
+            idx = findfirst(==(3), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
         end
 
         nExt = sum([nA, nB, nC] .== 0)

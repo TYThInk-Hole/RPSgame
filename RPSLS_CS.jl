@@ -207,21 +207,36 @@ function RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1,
         nE = count(==(5), Lattice)
         nExt = sum([nA, nB, nC, nD, nE] .== 0)
 
-        if 0 < nA < 10
-            nA -= 1
+        if nA < 10
+            idx = findfirst(==(1), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
         end
-        if 0 < nB < 10
-            nB -= 1
+        if nB < 10
+            idx = findfirst(==(2), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
         end
-        if 0 < nC < 10
-            nC -= 1
+        if nC < 10
+            idx = findfirst(==(3), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
         end
-        if 0 < nD < 10
-            nD -= 1
-        end
-        if 0 < nE < 10
-            nE -= 1
-        end
+        if nD < 10
+            idx = findfirst(==(4), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end 
+        if nE < 10
+            idx = findfirst(==(5), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end 
 
         # Save NumS data
         h5open(file_dir, "r+") do f
