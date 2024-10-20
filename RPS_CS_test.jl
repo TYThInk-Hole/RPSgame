@@ -189,6 +189,15 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         if nExt == ext 
             Flag = false
         end
+
+        rate_sum = reproduction_rate + selection_rate + intra1*(nA != 0) + intra2*(nB != 0) + intra3*(nC != 0) + eps
+        r1 = reproduction_rate / rate_sum
+        r2 = selection_rate / rate_sum
+        r3 = intra1*(nA != 0) / rate_sum
+        r4 = intra2*(nB != 0) / rate_sum
+        r5 = intra3*(nC != 0) / rate_sum
+        r6 = eps / rate_sum
+        
     end
 
     println("Elapsed time: ", time() - start_time, " seconds")
