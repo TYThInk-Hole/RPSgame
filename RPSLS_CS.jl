@@ -207,6 +207,22 @@ function RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1,
         nE = count(==(5), Lattice)
         nExt = sum([nA, nB, nC, nD, nE] .== 0)
 
+        if 0 < nA < 10
+            nA -= 1
+        end
+        if 0 < nB < 10
+            nB -= 1
+        end
+        if 0 < nC < 10
+            nC -= 1
+        end
+        if 0 < nD < 10
+            nD -= 1
+        end
+        if 0 < nE < 10
+            nE -= 1
+        end
+
         # Save NumS data
         h5open(file_dir, "r+") do f
             dset2 = f[dataset2]
@@ -223,6 +239,16 @@ function RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1,
             Flag = false
         end
     end
+
+    rate_sum = reproduction_rate + selection_rate + intra1*(nA != 0) + intra2*(nB != 0) + intra3*(nC != 0) + intra4*(nD != 0) + intra5*(nE != 0) + eps
+    r1 = reproduction_rate / rate_sum
+    r2 = selection_rate / rate_sum
+    r3 = intra1*(nA != 0) / rate_sum
+    r4 = intra2*(nB != 0) / rate_sum
+    r5 = intra3*(nC != 0) / rate_sum
+    r6 = intra4*(nD != 0) / rate_sum
+    r7 = intra5*(nE != 0) / rate_sum
+    r8 = eps / rate_sum
 
     println("Elapsed time: ", time() - start_time, " seconds")
 end
