@@ -14,8 +14,8 @@ echo "$n_threads $start_rn $end_rn $chunk_size $intra1_start $intra1_end $intra1
 # Julia 함수를 위한 다른 매개변수 설정
 # 3ext : reproduction_rate 0.5 selection_rate 1.0 intra1 100 intra2 1.2 intra3 0.1
 Lsize=200
-reproduction_rate=0.5
-selection_rate=1.0
+reproduction_rate=2.0
+selection_rate=2.0
 mobility=30
 para=6.25
 
