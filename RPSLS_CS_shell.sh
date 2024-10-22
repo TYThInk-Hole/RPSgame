@@ -12,7 +12,7 @@ fi
 echo "$n_threads $start_rn $end_rn $chunk_size $intra1 $intra2 $intra3 $intra4 $intra5_start $intra5_end $intra5_step $ext $para" >> RPSLS_CS_input_log.txt
 # Julia 함수를 위한 다른 매개변수 설정
 Lsize=200
-reproduction_rate=0.5
+reproduction_rate=1.0
 selection_rate=1.0
 mobility=30
 para=6.25
