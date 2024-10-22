@@ -197,6 +197,37 @@ function ERPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, 
         nE = count(==(5), Lattice)
         nExt = sum([nA, nB, nC, nD, nE] .== 0)
 
+        if nA < 50
+            idx = findfirst(==(1), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end
+        if nB < 50
+            idx = findfirst(==(2), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end
+        if nC < 50
+            idx = findfirst(==(3), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end
+        if nD < 50
+            idx = findfirst(==(4), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end 
+        if nE < 50
+            idx = findfirst(==(5), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end
+
         # Save NumS data
         h5open(file_dir, "r+") do f
             dset2 = f[dataset2]
