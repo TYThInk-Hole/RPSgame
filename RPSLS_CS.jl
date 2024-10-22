@@ -207,31 +207,31 @@ function RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1,
         nE = count(==(5), Lattice)
         nExt = sum([nA, nB, nC, nD, nE] .== 0)
 
-        if nA < 100
+        if nA < 200
             idx = findfirst(==(1), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
             end
         end
-        if nB < 100
+        if nB < 200
             idx = findfirst(==(2), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
             end
         end
-        if nC < 100
+        if nC < 200
             idx = findfirst(==(3), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
             end
         end
-        if nD < 100
+        if nD < 200
             idx = findfirst(==(4), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
             end
         end 
-        if nE < 100
+        if nE < 200
             idx = findfirst(==(5), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
@@ -255,15 +255,15 @@ function RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1,
         end
     end
 
-    rate_sum = reproduction_rate + selection_rate + intra1*(nA != 0) + intra2*(nB != 0) + intra3*(nC != 0) + intra4*(nD != 0) + intra5*(nE != 0) + eps
-    r1 = reproduction_rate / rate_sum
-    r2 = selection_rate / rate_sum
-    r3 = intra1*(nA != 0) / rate_sum
-    r4 = intra2*(nB != 0) / rate_sum
-    r5 = intra3*(nC != 0) / rate_sum
-    r6 = intra4*(nD != 0) / rate_sum
-    r7 = intra5*(nE != 0) / rate_sum
-    r8 = eps / rate_sum
+    # rate_sum = reproduction_rate + selection_rate + intra1*(nA != 0) + intra2*(nB != 0) + intra3*(nC != 0) + intra4*(nD != 0) + intra5*(nE != 0) + eps
+    # r1 = reproduction_rate / rate_sum
+    # r2 = selection_rate / rate_sum
+    # r3 = intra1*(nA != 0) / rate_sum
+    # r4 = intra2*(nB != 0) / rate_sum
+    # r5 = intra3*(nC != 0) / rate_sum
+    # r6 = intra4*(nD != 0) / rate_sum
+    # r7 = intra5*(nE != 0) / rate_sum
+    # r8 = eps / rate_sum
 
     println("Elapsed time: ", time() - start_time, " seconds")
 end
