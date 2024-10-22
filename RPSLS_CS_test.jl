@@ -29,8 +29,8 @@ function RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1,
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 file setup
-    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPSLS_intra.h5"
-    # file_dir = "/Volumes/yoonD/RPS/intra/RPSLS_intra.h5"
+    # file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPSLS_intra.h5"
+    file_dir = "/Volumes/yoonD/RPS/intra/RPSLS_intra.h5"
     group_name = @sprintf("intra_%.3f_%.3f_%.3f_%.3f_%.3f", intra1, intra2, intra3, intra4, intra5)
     dataset1 = "$group_name/Histogram/$rn"
     dataset2 = "$group_name/NumS/$rn"
@@ -208,6 +208,37 @@ function RPSLS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1,
         nE = count(==(5), Lattice)
         nExt = sum([nA, nB, nC, nD, nE] .== 0)
 
+        if nA < 200
+            idx = findfirst(==(1), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end
+        if nB < 200
+            idx = findfirst(==(2), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end
+        if nC < 200
+            idx = findfirst(==(3), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end
+        if nD < 200
+            idx = findfirst(==(4), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end 
+        if nE < 200
+            idx = findfirst(==(5), Lattice)
+            if idx !== nothing
+                Lattice[idx] = 0
+            end
+        end
+        
         # Save NumS data
         h5open(file_dir, "r+") do f
             dset2 = f[dataset2]
@@ -275,8 +306,8 @@ end
 function main()
     Lsize, reproduction_rate, selection_rate, mobility, intra1, intra2, intra3, intra4, intra5_start, intra5_end, intra5_step, ext, para, rn_start, rn_end = parse_command_line_args()
 
-    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPSLS_intra.h5"
-    # file_dir = "/Volumes/yoonD/RPS/intra/RPSLS_intra.h5"    
+    # file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPSLS_intra.h5"
+    file_dir = "/Volumes/yoonD/RPS/intra/RPSLS_intra.h5"    
     for intra5 in intra5_start:intra5_step:intra5_end
         group_name = @sprintf("intra_%.3f_%.3f_%.3f_%.3f_%.3f", intra1, intra2, intra3, intra4, intra5)
 
