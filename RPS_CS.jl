@@ -195,7 +195,7 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
                 Lattice[idx] = 0
             end
         end
-        if nC < 10
+        if nC < 20
             idx = findfirst(==(3), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
