@@ -27,8 +27,8 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
     neighbor_shifts = [1 0; -1 0; 0 1; 0 -1]
 
     # HDF5 file setup
-    file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra.h5"
-    # file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
+    # file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra.h5"
+    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
     group_name = @sprintf("intra_%.3f_%.3f_%.3f", intra1, intra2, intra3)
     dataset1 = "$group_name/Histogram/$rn"
     dataset2 = "$group_name/NumS/$rn"
@@ -267,8 +267,8 @@ end
 function main()
     Lsize, reproduction_rate, selection_rate, mobility, intra1_start, intra1_end, intra1_step, intra2, intra3, ext, para, rn_start, rn_end = parse_command_line_args()
 
-    # file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
-    file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra.h5"
+    file_dir = "/home/ty/Desktop/yoonD/RPS/intra/RPS_intra.h5"
+    # file_dir = "/Volumes/yoonD/RPS/intra/RPS_intra.h5"
     for intra1 in intra1_start:intra1_step:intra1_end
         group_name = @sprintf("intra_%.3f_%.3f_%.3f", intra1, intra2, intra3)
 
