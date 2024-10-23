@@ -174,19 +174,19 @@ function RPS_intra(Lsize, reproduction_rate, selection_rate, mobility, intra1, i
         nC = count(==(3), Lattice)
         nExt = sum([nA, nB, nC] .== 0)
 
-        if nA < 200
+        if nA < 250
             idx = findfirst(==(1), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
             end
         end
-        if nB < 200
+        if nB < 250
             idx = findfirst(==(2), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
             end
         end
-        if nC < 200
+        if nC < 250
             idx = findfirst(==(3), Lattice)
             if idx !== nothing
                 Lattice[idx] = 0
